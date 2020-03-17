@@ -1,0 +1,59 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.14
+        environment:
+          GO111MODULE: "on"
+    working_directory: /go/src/github.rakops.com/BNP/DisplayInvoiceGen
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: git config --global url."https://rpx:${GITHUB_RAKOPS}@github.rakops.com/rpx/rules.git".insteadOf "https://github.rakops.com/rpx/rules.git"
+      - run: git config --global url."https://BNP:${GITHUB_RAKOPS}@github.rakops.com/BNP/DisplayInvoiceGen.git".insteadOf "https://github.rakops.com/BNP/DisplayInvoiceGen.git"
+      - run: go test -race ./...
+
+  artifactory_master:
+    docker:
+      - image: circleci/golang:1.14
+    working_directory: /go/src/github.rakops.com/BNP/DisplayInvoiceGen
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: docker build --build-arg GITHUB_RAKOPS=${GITHUB_RAKOPS} --build-arg MAIN_DB_USER=${MAIN_DB_SERVICE_USER} --build-arg MAIN_DB_PASS=${MAIN_DB_SERVICE_PASS} --build-arg MAIN_DB_ADDR=${MAIN_DB_ADDR} --build-arg MAIN_DB_NAME=${MAIN_DB_NAME} --build-arg PRODUCTION='true' -t repo.rmgops.com/docker/BNP/DisplayInvoiceGen:master -f invoice_gen.Dockerfile .
+      - run: docker images
+      - run: docker login  -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_APIKEY} repo.rmgops.com
+      - run: docker push repo.rmgops.com/docker/BNP/DisplayInvoiceGen:master
+
+  artifactory_develop:
+    docker:
+      - image: circleci/golang:1.12.3
+    working_directory: /go/src/github.rakops.com/BNP/DisplayInvoiceGen
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: docker build --build-arg GITHUB_RAKOPS=${GITHUB_RAKOPS} -t repo.rmgops.com/docker/BNP/DisplayInvoiceGen/invoice_gen:develop -f main_updater.Dockerfile .
+      - run: docker images
+      - run: docker login  -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_APIKEY} repo.rmgops.com
+      - run: docker push repo.rmgops.com/docker/BNP/DisplayInvoiceGen/invoice_gen:develop
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
+      - artifactory_master:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+
+      - artifactory_develop:
+          requires:
+            - build
+          filters:
+            branches:
+              only: develop
