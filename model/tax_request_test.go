@@ -840,8 +840,8 @@ var requestBody = `{
 }`
 
 func TestRequestParsing(t *testing.T) {
-	response := &TaxRequest{}
-	err := json.Unmarshal([]byte(requestBody), response)
+	request := &TaxRequest{}
+	err := json.Unmarshal([]byte(requestBody), request)
 	if err != nil {
 		t.Errorf("Can't parse request body: %v", err)
 	}
