@@ -15,8 +15,8 @@ type Config struct {
 	ListenAddress string
 	Production    bool
 
-	Postgres PostgresConfig
-	External ExternalService
+	Postgres              PostgresConfig
+	TaxCalculationService ExternalService
 }
 
 // PostgresConfig configuration structure for postgres database
@@ -29,7 +29,8 @@ type PostgresConfig struct {
 }
 
 type ExternalService struct {
-	Addr string
+	Address   string
+	AuthToken string
 }
 
 // Validate validate config structure
@@ -38,7 +39,7 @@ func (c Config) Validate() error {
 		v.Field(&c.Version, v.Required),
 		v.Field(&c.ListenAddress, v.Required),
 		v.Field(&c.Postgres),
-		v.Field(&c.External),
+		v.Field(&c.TaxCalculationService),
 	)
 }
 
@@ -55,7 +56,7 @@ func (p PostgresConfig) Validate() error {
 // Validate external service config structure
 func (p ExternalService) Validate() error {
 	return v.ValidateStruct(&p,
-		v.Field(&p.Addr, v.Required),
+		v.Field(&p.Address, v.Required),
 	)
 }
 
@@ -89,7 +90,8 @@ func initConfig(body []byte) *Config {
 	c.Postgres.Database = vip.GetString("PG_NAME")
 	c.Postgres.Debug = vip.GetBool("PG_DEBUG")
 
-	c.External.Addr = vip.GetString("API_ADDRES")
+	c.TaxCalculationService.Address = vip.GetString("API_ADDRESS")
+	c.TaxCalculationService.AuthToken = vip.GetString("API_AUTHORIZATION_TOKEN")
 
 	if err := c.Validate(); err != nil {
 		log.Fatalf("can't validate config, err %s", err.Error())

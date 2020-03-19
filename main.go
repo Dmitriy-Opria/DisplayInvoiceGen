@@ -16,10 +16,11 @@ import (
 )
 
 var (
-	user string
-	pass string
-	addr string
-	name string
+	user  string
+	pass  string
+	addr  string
+	name  string
+	token string
 )
 
 func main() {
@@ -67,11 +68,13 @@ func initConfig() *config.Config {
 	if user != "" &&
 		pass != "" &&
 		addr != "" &&
-		name != "" {
+		name != "" &&
+		token != "" {
 		cfg.Postgres.User = user
 		cfg.Postgres.Pass = pass
 		cfg.Postgres.Addr = addr
 		cfg.Postgres.Database = name
+		cfg.TaxCalculationService.AuthToken = token
 	}
 
 	log.Info("Config was successfully initialized")

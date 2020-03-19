@@ -140,7 +140,7 @@ func combineInvoiceLineItem(id, taxRate int64, charges []*postgres.Charge) []*po
 		}
 		invoiceLineItem.LineItemAmount = math.Round(charges[index].ChargeAmount*100) / 100
 		invoiceLineItem.LineItemTaxAmount = math.Round(charges[index].ChargeAmount*(float64(taxRate)*0.01)*100) / 100
-		invoiceLineItem.LineItemTotalAmount = math.Round(invoiceLineItem.LineItemAmount+invoiceLineItem.LineItemTaxAmount*100) / 100
+		invoiceLineItem.LineItemTotalAmount = math.Round((invoiceLineItem.LineItemAmount+invoiceLineItem.LineItemTaxAmount)*100) / 100
 
 		invoiceLineItems = append(invoiceLineItems, invoiceLineItem)
 	}
