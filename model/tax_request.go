@@ -299,10 +299,10 @@ type LineRequest struct {
 }
 
 type Quantities struct {
-	Quantity []Quantity `json:"quantity"`
+	Quantity []QuantityItem `json:"quantity"`
 }
 
-type Quantity struct {
+type QuantityItem struct {
 	Amount string `json:"amount"`
 	Def    string `json:"default"`
 	Uom    string `json:"uom"`

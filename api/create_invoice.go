@@ -37,11 +37,19 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 	if !exist {
 
 		groupedList := groupCharges(chargedList)
-		taxRate := a.Deps.ExternalService.GetTaxRate()
 
 		billingTime := ctx.Value(ContextBillingTime).(time.Time)
 
 		for _, list := range groupedList {
+
+			taxRate, err := a.Deps.ExternalService.GetTaxRate(list[0])
+			if err != nil {
+				return &rye.Response{
+					Err:        err,
+					StatusCode: http.StatusExpectationFailed,
+				}
+			}
+
 			id, err := a.Deps.Postgres.GetInvoiceSequence()
 			if err != nil {
 				return &rye.Response{
