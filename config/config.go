@@ -17,6 +17,7 @@ type Config struct {
 
 	Postgres              PostgresConfig
 	TaxCalculationService ExternalService
+	TaxCalculationParams  ExternalParams
 }
 
 // PostgresConfig configuration structure for postgres database
@@ -31,6 +32,18 @@ type PostgresConfig struct {
 type ExternalService struct {
 	Address   string
 	AuthToken string
+}
+
+type ExternalParams struct {
+	CompanyName     string
+	DivisionAU      map[string]struct{}
+	DivisionUS      map[string]struct{}
+	DivisionEU      map[string]struct{}
+	TaxIdUS         string
+	TaxIdAU         string
+	TaxIdEU         string
+	ProductClass    string
+	TransactionType string
 }
 
 // Validate validate config structure
@@ -92,6 +105,32 @@ func initConfig(body []byte) *Config {
 
 	c.TaxCalculationService.Address = vip.GetString("API_ADDRESS")
 	c.TaxCalculationService.AuthToken = vip.GetString("API_AUTHORIZATION_TOKEN")
+
+	c.TaxCalculationParams.CompanyName = vip.GetString("COMPANY_NAME")
+	c.TaxCalculationParams.ProductClass = vip.GetString("PRODUCT_CLASS")
+	c.TaxCalculationParams.TransactionType = vip.GetString("TRANSACTION_TYPE")
+
+	c.TaxCalculationParams.TaxIdUS = vip.GetString("TAX_ID_US")
+	c.TaxCalculationParams.TaxIdAU = vip.GetString("TAX_ID_AU")
+	c.TaxCalculationParams.TaxIdEU = vip.GetString("TAX_ID_EU")
+
+	divisionAU := vip.GetStringSlice("DIVISION_AU")
+	divisionUS := vip.GetStringSlice("DIVISION_US")
+	divisionEU := vip.GetStringSlice("DIVISION_EU")
+
+	c.TaxCalculationParams.DivisionAU = map[string]struct{}{}
+	c.TaxCalculationParams.DivisionUS = map[string]struct{}{}
+	c.TaxCalculationParams.DivisionEU = map[string]struct{}{}
+
+	for _, division := range divisionAU {
+		c.TaxCalculationParams.DivisionAU[division] = struct{}{}
+	}
+	for _, division := range divisionUS {
+		c.TaxCalculationParams.DivisionUS[division] = struct{}{}
+	}
+	for _, division := range divisionEU {
+		c.TaxCalculationParams.DivisionEU[division] = struct{}{}
+	}
 
 	if err := c.Validate(); err != nil {
 		log.Fatalf("can't validate config, err %s", err.Error())

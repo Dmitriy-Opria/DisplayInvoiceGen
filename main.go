@@ -29,11 +29,11 @@ func main() {
 	pg := initPostgres(cfg)
 
 	httpClient := &http.Client{
-		Timeout: time.Duration(15 * time.Second),
+		Timeout: time.Duration(30 * time.Second),
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 			DialContext: (&net.Dialer{
-				Timeout:   time.Second,
+				Timeout:   10 * time.Second,
 				KeepAlive: 30 * time.Second,
 				DualStack: true,
 			}).DialContext,
@@ -41,7 +41,7 @@ func main() {
 			MaxIdleConnsPerHost:   100,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
+			ExpectContinueTimeout: 5 * time.Second,
 		},
 	}
 

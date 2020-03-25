@@ -11,7 +11,7 @@ type Invoice struct {
 	InvoiceNumber   int64      `json:"InvoiceNumber"          sql:"invoicenumber"`  // InvoiceSequence
 	BillingSetting  string     `json:"BillingSetting"         sql:"billingsetting"` // GBS_Billing_Setting__c
 	InvoiceAmount   float64    `json:"InvoiceAmount"          sql:"invoiceamount"`
-	TaxRate         int64      `json:"TaxRate"                sql:"taxrate"`
+	TaxRate         float64    `json:"TaxRate"                sql:"taxrate,notnull,type:numeric"`
 	AccountNumber   string     `json:"AccountNumber"          sql:"accountnumber"`   // Account__c
 	SAPCustomerID   string     `json:"SAPCustomerID"          sql:"sapcustomerid"`   // sap_customer_id__c
 	PaymentTerms    string     `json:"PaymentTerms"           sql:"paymentterms"`    // payment_terms_sap__c

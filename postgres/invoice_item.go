@@ -9,9 +9,9 @@ type InvoiceLineItem struct {
 	tableName           struct{} `sql:"InvoiceLineItem"`
 	InvoiceNumber       int64    `json:"InvoiceNumber"                      sql:"invoicenumber"`
 	LineItemNumber      int64    `json:"LineItemNumber"                     sql:"lineitemnumber"`
-	LineItemAmount      float64  `json:"LineItemAmount"                     sql:"lineitemamount"`
-	LineItemTaxAmount   float64  `json:"LineItemTaxAmount"                  sql:"lineitemtaxamount"`
-	LineItemTotalAmount float64  `json:"LineItemTotalAmount"                sql:"lineitemtotalamount"`
+	LineItemAmount      float64  `json:"LineItemAmount"                     sql:"lineitemamount,notnull,type:numeric"`
+	LineItemTaxAmount   float64  `json:"LineItemTaxAmount"                  sql:"lineitemtaxamount,notnull,type:numeric"`
+	LineItemTotalAmount float64  `json:"LineItemTotalAmount"                sql:"lineitemtotalamount,notnull,type:numeric"`
 }
 
 func (p *ConnectionWrapper) AddInvoiceLineItem(invoiceLineItems []*InvoiceLineItem) error {

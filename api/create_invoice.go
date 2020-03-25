@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.rakops.com/BNP/DisplayInvoiceGen/log"
+	"github.rakops.com/BNP/DisplayInvoiceGen/model"
 	"math"
 	"net/http"
 	"time"
@@ -42,7 +43,7 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 
 		for _, list := range groupedList {
 
-			taxRate, err := a.Deps.ExternalService.GetTaxRate(list[0])
+			taxResponse, err := a.Deps.ExternalService.GetTaxResponse(list, billingDate)
 			if err != nil {
 				return &rye.Response{
 					Err:        err,
@@ -58,7 +59,7 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 				}
 			}
 
-			err = a.Deps.Postgres.AddInvoice(combineInvoice(id, taxRate, billingTime, list))
+			err = a.Deps.Postgres.AddInvoice(combineInvoice(id, taxResponse, billingTime, list))
 			if err != nil {
 				return &rye.Response{
 					Err:        errors.Wrap(err, "unable to insert invoice"),
@@ -66,7 +67,7 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 				}
 			}
 
-			err = a.Deps.Postgres.AddInvoiceLineItem(combineInvoiceLineItem(id, taxRate, list))
+			err = a.Deps.Postgres.AddInvoiceLineItem(combineInvoiceLineItem(id, taxResponse))
 			if err != nil {
 				return &rye.Response{
 					Err:        errors.Wrap(err, "unable to insert invoice line item"),
@@ -101,7 +102,7 @@ func groupCharges(chargedList []*postgres.Charge) map[string][]*postgres.Charge 
 	return chargedMap
 }
 
-func combineInvoice(id, taxRate int64, tm time.Time, charges []*postgres.Charge) *postgres.Invoice {
+func combineInvoice(id int64, invoiceResponse *model.Response, tm time.Time, charges []*postgres.Charge) *postgres.Invoice {
 
 	if len(charges) == 0 {
 		return nil
@@ -112,7 +113,6 @@ func combineInvoice(id, taxRate int64, tm time.Time, charges []*postgres.Charge)
 	invoice := &postgres.Invoice{
 		InvoiceNumber:   id,
 		BillingSetting:  charges[0].BillingSettings,
-		TaxRate:         taxRate,
 		AccountNumber:   charges[0].Account,
 		SAPCustomerID:   charges[0].SapCustomerID,
 		PaymentTerms:    charges[0].PaymentsTermsSap,
@@ -131,24 +131,40 @@ func combineInvoice(id, taxRate int64, tm time.Time, charges []*postgres.Charge)
 
 	invoice.InvoiceAmount = math.Round(invoice.InvoiceAmount*1000) / 1000
 
+	tax := 0.0
+	totalTax := 0.0
+	for _, line := range invoiceResponse.InvoiceResponse.LineItem {
+		totalTax += line.TotalTax
+	}
+	if invoiceResponse.InvoiceResponse.LineItem[0].TotalTax != 0 {
+		tax = (totalTax / invoice.InvoiceAmount) * 100
+		tax = math.Round(tax*1000) / 1000
+	}
+
+	invoice.TaxRate = tax
+
 	return invoice
 }
 
-func combineInvoiceLineItem(id, taxRate int64, charges []*postgres.Charge) []*postgres.InvoiceLineItem {
+func combineInvoiceLineItem(id int64, invoiceResponse *model.Response) []*postgres.InvoiceLineItem {
 
-	if len(charges) == 0 {
+	if len(invoiceResponse.InvoiceResponse.LineItem) == 0 {
 		return nil
 	}
-	invoiceLineItems := make([]*postgres.InvoiceLineItem, 0, len(charges))
+	invoiceLineItems := make([]*postgres.InvoiceLineItem, 0, len(invoiceResponse.InvoiceResponse.LineItem))
 
-	for index := range charges {
+	for _, lineItem := range invoiceResponse.InvoiceResponse.LineItem {
+		if len(lineItem.Taxes) == 0 {
+			return nil
+		}
 		invoiceLineItem := &postgres.InvoiceLineItem{
 			InvoiceNumber:  id,
-			LineItemNumber: int64(index + 1),
+			LineItemNumber: int64(lineItem.LineItemNumber),
 		}
-		invoiceLineItem.LineItemAmount = math.Round(charges[index].ChargeAmount*100) / 100
-		invoiceLineItem.LineItemTaxAmount = math.Round(charges[index].ChargeAmount*(float64(taxRate)*0.01)*100) / 100
-		invoiceLineItem.LineItemTotalAmount = math.Round((invoiceLineItem.LineItemAmount+invoiceLineItem.LineItemTaxAmount)*100) / 100
+
+		invoiceLineItem.LineItemAmount = lineItem.ExtendedPrice
+		invoiceLineItem.LineItemTaxAmount = lineItem.Taxes[0].CalculatedTax
+		invoiceLineItem.LineItemTotalAmount = invoiceLineItem.LineItemAmount + invoiceLineItem.LineItemTaxAmount
 
 		invoiceLineItems = append(invoiceLineItems, invoiceLineItem)
 	}

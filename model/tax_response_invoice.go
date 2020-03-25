@@ -88,9 +88,9 @@ type Response struct {
 		SitusOverride                     interface{}   `json:"situsOverride"`
 		Discount                          interface{}   `json:"discount"`
 		ProratePercentage                 interface{}   `json:"proratePercentage"`
-		SubTotal                          int           `json:"subTotal"`
-		Total                             int           `json:"total"`
-		TotalTax                          int           `json:"totalTax"`
+		SubTotal                          float64       `json:"subTotal"`
+		Total                             float64       `json:"total"`
+		TotalTax                          float64       `json:"totalTax"`
 		CurrencyConversionFactors         interface{}   `json:"currencyConversionFactors"`
 		LineItem                          []LineItem    `json:"lineItem"`
 		DocumentNumber                    interface{}   `json:"documentNumber"`
@@ -177,15 +177,15 @@ type LineItem struct {
 	SupplementaryUnit                interface{} `json:"supplementaryUnit"`
 	StatisticalValue                 interface{} `json:"statisticalValue"`
 	Freight                          interface{} `json:"freight"`
-	FairMarketValue                  int         `json:"fairMarketValue"`
-	UnitPrice                        interface{} `json:"unitPrice"`
-	ExtendedPrice                    int         `json:"extendedPrice"`
+	FairMarketValue                  float64     `json:"fairMarketValue"`
+	UnitPrice                        float64     `json:"unitPrice"`
+	ExtendedPrice                    float64     `json:"extendedPrice"`
 	Discount                         interface{} `json:"discount"`
 	AmountBilledToDate               interface{} `json:"amountBilledToDate"`
 	CompanyCodeCurrencyTaxableAmount interface{} `json:"companyCodeCurrencyTaxableAmount"`
 	CompanyCodeCurrencyTaxAmount     interface{} `json:"companyCodeCurrencyTaxAmount"`
 	Taxes                            []Taxes     `json:"taxes"`
-	TotalTax                         int         `json:"totalTax"`
+	TotalTax                         float64     `json:"totalTax"`
 	FlexibleFields                   interface{} `json:"flexibleFields"`
 	ReturnsFields                    interface{} `json:"returnsFields"`
 	AssistedParameters               `json:"assistedParameters"`
@@ -224,14 +224,14 @@ type Product struct {
 	ProductClass string `json:"productClass"`
 }
 type Quantity struct {
-	Value         int         `json:"value"`
+	Value         float64     `json:"value"`
 	UnitOfMeasure interface{} `json:"unitOfMeasure"`
 }
 
 type Taxes struct {
 	Jurisdiction                     `json:"jurisdiction"`
 	AccumulateAsJurisdiction         interface{} `json:"accumulateAsJurisdiction"`
-	CalculatedTax                    int         `json:"calculatedTax"`
+	CalculatedTax                    float64     `json:"calculatedTax"`
 	EffectiveRate                    float64     `json:"effectiveRate"`
 	TaxApportionmentRate             interface{} `json:"taxApportionmentRate"`
 	BasisReductionPercentage         interface{} `json:"basisReductionPercentage"`
@@ -304,7 +304,7 @@ type Jurisdiction struct {
 }
 
 type Taxable struct {
-	Value         int         `json:"value"`
+	Value         float64     `json:"value"`
 	UnitOfMeasure interface{} `json:"unitOfMeasure"`
 }
 
@@ -327,9 +327,11 @@ type TaxRuleID struct {
 	SalesTaxHolidayIndicator interface{} `json:"salesTaxHolidayIndicator"`
 	TaxRuleType              interface{} `json:"taxRuleType"`
 }
+
 type AssistedParameters struct {
 	Param []AssistedParameter `json:"assistedParameter"`
 }
+
 type AssistedParameter struct {
 	Value         string `json:"value"`
 	ParamName     string `json:"paramName"`

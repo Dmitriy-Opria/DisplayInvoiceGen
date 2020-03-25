@@ -134,7 +134,7 @@ var invoiceResponse = `{
                 "statisticalValue": null,
                 "freight": null,
                 "fairMarketValue": 100,
-                "unitPrice": null,
+                "unitPrice": 0,
                 "extendedPrice": 100,
                 "discount": null,
                 "amountBilledToDate": null,
@@ -418,7 +418,6 @@ var _ = Describe("Request Invoice API", func() {
 			}}
 
 			request.InvoiceResponse.ImpositionToProcess = []interface{}{}
-			//request.InvoiceResponse.ImpositionToProcess = []interface{}{}
 			request.InvoiceResponse.JurisdictionOverride = []interface{}{}
 			request.InvoiceResponse.SubTotal = 100
 			request.InvoiceResponse.Total = 120
