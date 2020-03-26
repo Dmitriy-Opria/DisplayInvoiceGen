@@ -164,7 +164,7 @@ func combineInvoiceLineItem(id int64, invoiceResponse *model.Response) []*postgr
 
 		invoiceLineItem.LineItemAmount = lineItem.ExtendedPrice
 		invoiceLineItem.LineItemTaxAmount = lineItem.Taxes[0].CalculatedTax
-		invoiceLineItem.LineItemTotalAmount = invoiceLineItem.LineItemAmount + invoiceLineItem.LineItemTaxAmount
+		invoiceLineItem.LineItemTotalAmount = math.Round((invoiceLineItem.LineItemAmount+invoiceLineItem.LineItemTaxAmount)*100) / 100
 
 		invoiceLineItems = append(invoiceLineItems, invoiceLineItem)
 	}

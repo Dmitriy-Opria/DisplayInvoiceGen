@@ -53,13 +53,6 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge, billingDate
 				PhysicalOrigin: model.Destination{
 					Country: charges[0].BillingCountryCode,
 				},
-				TaxRegistrationType: []model.TaxRegistrationInvoice{
-					{
-						TaxRegistrationNumber:        charges[0].VATRegistrationNumber,
-						HasPhysicalPresenceIndicator: "true",
-						IsoCountryCode:               charges[0].BillingCountryCode,
-					},
-				},
 			},
 
 			DocumentDate:    billingDate,
@@ -69,12 +62,32 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge, billingDate
 
 	if _, ok := e.config.TaxCalculationParams.DivisionAU[charges[0].Country]; ok {
 		payload.InvoiceRequest.Seller.Division = "RM_AU"
+		payload.InvoiceRequest.Seller.TaxRegistrationType = []model.TaxRegistrationInvoice{
+			{
+				TaxRegistrationNumber:        e.config.TaxCalculationParams.TaxIdAU,
+				HasPhysicalPresenceIndicator: "true",
+				IsoCountryCode:               charges[0].BillingCountryCode,
+			},
+		}
 
 	} else if _, ok := e.config.TaxCalculationParams.DivisionUS[charges[0].Country]; ok {
 		payload.InvoiceRequest.Seller.Division = "RM_US"
-
+		payload.InvoiceRequest.Seller.TaxRegistrationType = []model.TaxRegistrationInvoice{
+			{
+				TaxRegistrationNumber:        e.config.TaxCalculationParams.TaxIdUS,
+				HasPhysicalPresenceIndicator: "true",
+				IsoCountryCode:               charges[0].BillingCountryCode,
+			},
+		}
 	} else if _, ok := e.config.TaxCalculationParams.DivisionEU[charges[0].Country]; ok {
 		payload.InvoiceRequest.Seller.Division = "RM_EU"
+		payload.InvoiceRequest.Seller.TaxRegistrationType = []model.TaxRegistrationInvoice{
+			{
+				TaxRegistrationNumber:        e.config.TaxCalculationParams.TaxIdEU,
+				HasPhysicalPresenceIndicator: "true",
+				IsoCountryCode:               charges[0].BillingCountryCode,
+			},
+		}
 
 	} else {
 		payload.InvoiceRequest.Seller.Division = ""
