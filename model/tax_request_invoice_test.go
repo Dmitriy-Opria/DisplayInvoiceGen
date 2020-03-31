@@ -89,7 +89,7 @@ var _ = Describe("Request Invoice API", func() {
 						PhysicalOrigin: Destination{
 							Country: "GB",
 						},
-						TaxRegistrationType: []TaxRegistrationInvoice{
+						TaxRegistration: []TaxRegistrationInvoice{
 							{
 								TaxRegistrationNumber:        "GB123456789",
 								HasPhysicalPresenceIndicator: "true",

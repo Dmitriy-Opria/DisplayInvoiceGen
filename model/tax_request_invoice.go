@@ -18,10 +18,10 @@ type Customer struct {
 }
 
 type Seller struct {
-	Company             string                   `json:"company"`
-	Division            string                   `json:"division"`
-	PhysicalOrigin      Destination              `json:"physicalOrigin"`
-	TaxRegistrationType []TaxRegistrationInvoice `json:"taxRegistrationType"`
+	Company         string                   `json:"company"`
+	Division        string                   `json:"division"`
+	PhysicalOrigin  Destination              `json:"physicalOrigin"`
+	TaxRegistration []TaxRegistrationInvoice `json:"taxRegistration"`
 }
 
 type LineItemInvoice struct {
