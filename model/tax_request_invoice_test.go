@@ -39,7 +39,7 @@ var invoiceRequest = `{
         "postalCode": "",
         "country": "GB"
       },
-      "taxRegistrationType": [
+      "taxRegistration": [
         {
           "taxRegistrationNumber": "GB123456789",
           "hasPhysicalPresenceIndicator": "true",

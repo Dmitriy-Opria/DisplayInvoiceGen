@@ -67,7 +67,7 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge) (*model.Res
 		}
 	}
 
-	if _, ok := e.config.TaxCalculationParams.DivisionAU[charges[0].RakutenCountry]; ok {
+	if _, ok := e.config.TaxCalculationParams.RegistrationAU[charges[0].RakutenCountry]; ok {
 		payload.InvoiceRequest.Seller.Division = "RM_AU"
 		payload.InvoiceRequest.Seller.TaxRegistration = []model.TaxRegistrationInvoice{
 			{
@@ -77,7 +77,7 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge) (*model.Res
 			},
 		}
 
-	} else if _, ok := e.config.TaxCalculationParams.DivisionUS[charges[0].RakutenCountry]; ok {
+	} else if _, ok := e.config.TaxCalculationParams.RegistrationUS[charges[0].RakutenCountry]; ok {
 		payload.InvoiceRequest.Seller.Division = "RM_US"
 		payload.InvoiceRequest.Seller.TaxRegistration = []model.TaxRegistrationInvoice{
 			{
@@ -86,7 +86,7 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge) (*model.Res
 				IsoCountryCode:               e.config.TaxCalculationParams.RegistrationIsoUS,
 			},
 		}
-	} else if _, ok := e.config.TaxCalculationParams.DivisionEU[charges[0].RakutenCountry]; ok {
+	} else if _, ok := e.config.TaxCalculationParams.RegistrationEU[charges[0].RakutenCountry]; ok {
 		payload.InvoiceRequest.Seller.Division = "RM_EU"
 		payload.InvoiceRequest.Seller.TaxRegistration = []model.TaxRegistrationInvoice{
 			{

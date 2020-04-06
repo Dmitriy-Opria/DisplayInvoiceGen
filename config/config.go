@@ -36,9 +36,9 @@ type ExternalService struct {
 
 type ExternalParams struct {
 	CompanyName       string
-	DivisionAU        map[string]struct{}
-	DivisionUS        map[string]struct{}
-	DivisionEU        map[string]struct{}
+	RegistrationAU    map[string]struct{}
+	RegistrationUS    map[string]struct{}
+	RegistrationEU    map[string]struct{}
 	RegistrationIsoAU string
 	RegistrationIsoUS string
 	RegistrationIsoEU string
@@ -125,18 +125,18 @@ func initConfig(body []byte) *Config {
 	RegistrationUS := vip.GetStringSlice("US_REGISTRATION")
 	RegistrationEU := vip.GetStringSlice("EU_REGISTRATION")
 
-	c.TaxCalculationParams.DivisionAU = map[string]struct{}{}
-	c.TaxCalculationParams.DivisionUS = map[string]struct{}{}
-	c.TaxCalculationParams.DivisionEU = map[string]struct{}{}
+	c.TaxCalculationParams.RegistrationAU = map[string]struct{}{}
+	c.TaxCalculationParams.RegistrationUS = map[string]struct{}{}
+	c.TaxCalculationParams.RegistrationEU = map[string]struct{}{}
 
 	for _, division := range RegistrationAU {
-		c.TaxCalculationParams.DivisionAU[division] = struct{}{}
+		c.TaxCalculationParams.RegistrationAU[division] = struct{}{}
 	}
 	for _, division := range RegistrationUS {
-		c.TaxCalculationParams.DivisionUS[division] = struct{}{}
+		c.TaxCalculationParams.RegistrationUS[division] = struct{}{}
 	}
 	for _, division := range RegistrationEU {
-		c.TaxCalculationParams.DivisionEU[division] = struct{}{}
+		c.TaxCalculationParams.RegistrationEU[division] = struct{}{}
 	}
 
 	if err := c.Validate(); err != nil {
