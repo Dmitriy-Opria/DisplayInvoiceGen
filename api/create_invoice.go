@@ -43,7 +43,7 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 
 		for _, list := range groupedList {
 
-			taxResponse, err := a.Deps.ExternalService.GetTaxResponse(list, billingDate)
+			taxResponse, err := a.Deps.ExternalService.GetTaxResponse(list)
 			if err != nil {
 				return &rye.Response{
 					Err:        err,

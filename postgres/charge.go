@@ -19,7 +19,7 @@ type Charge struct {
 	CODAVATRegistrationNumber string   `json:"CODAVATRegistrationNumber" sql:"c2g__CODAVATRegistrationNumber__c"`
 	BillingCountryCode        string   `json:"BillingCountryCode"        sql:"BillingCountryCode"`
 	VATRegistrationNumber     string   `json:"VATRegistrationNumber"     sql:"c2g__VATRegistrationNumber__c"`
-	Country                   string   `json:"Country"                   sql:"c2g__Country__c"`
+	RakutenCountry            string   `json:"RakutenCountry"            sql:"c2g__Country__c"`
 }
 
 func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error) {
@@ -35,10 +35,10 @@ func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error
 				c.charge_currency,
 				acct.sap_customer_id__c,
 				acct.payment_terms_sap__c,
-				--Customer VAT and Country Code
+				--Customer VAT and RakutenCountry Code
 				a."c2g__CODAVATRegistrationNumber__c", 
 				a."BillingCountryCode",
-				--Seller VAT and Country Code
+				--Seller VAT and RakutenCountry Code
 				comp."c2g__VATRegistrationNumber__c",
 				comp."c2g__Country__c"
 			from public.charge c

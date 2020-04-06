@@ -4,20 +4,24 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/jinzhu/now"
 	"github.com/pkg/errors"
 	"github.rakops.com/BNP/DisplayInvoiceGen/config"
 	"github.rakops.com/BNP/DisplayInvoiceGen/log"
 	"github.rakops.com/BNP/DisplayInvoiceGen/model"
 	"github.rakops.com/BNP/DisplayInvoiceGen/postgres"
-	"io/ioutil"
-	"net/http"
-	"strconv"
 )
 
-const DefaultTaxRate = 20
+const Layout = "2006-01-02"
 
 type IExternalService interface {
-	GetTaxResponse(charges []*postgres.Charge, billingDate string) (*model.Response, error)
+	GetTaxResponse(charges []*postgres.Charge) (*model.Response, error)
 }
 
 type ExternalService struct {
@@ -32,7 +36,7 @@ func NewExternalService(config *config.Config, client *http.Client) IExternalSer
 	}
 }
 
-func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge, billingDate string) (*model.Response, error) {
+func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge) (*model.Response, error) {
 
 	payload := model.Invoice{
 		InvoiceRequest: model.InvoiceRequest{
@@ -40,52 +44,55 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge, billingDate
 				Destination: model.Destination{
 					Country: charges[0].BillingCountryCode,
 				},
-				Tax: []model.TaxRegistrationInvoice{
-					{
-						TaxRegistrationNumber:        charges[0].VATRegistrationNumber,
-						HasPhysicalPresenceIndicator: "true",
-						IsoCountryCode:               charges[0].BillingCountryCode,
-					},
-				},
 			},
 			Seller: model.Seller{
 				Company: e.config.TaxCalculationParams.CompanyName,
 				PhysicalOrigin: model.Destination{
-					Country: charges[0].BillingCountryCode,
+					Country: charges[0].RakutenCountry,
 				},
 			},
 
-			DocumentDate:    billingDate,
+			DocumentDate:    now.New(time.Now()).BeginningOfMonth().Format(Layout), //time.now, first day of month
 			TransactionType: e.config.TaxCalculationParams.TransactionType,
 		},
 	}
 
-	if _, ok := e.config.TaxCalculationParams.DivisionAU[charges[0].Country]; ok {
+	if charges[0].CODAVATRegistrationNumber != "" {
+		payload.InvoiceRequest.Customer.Tax = []model.TaxRegistrationInvoice{ //don't send if number empty!
+			{
+				TaxRegistrationNumber:        charges[0].CODAVATRegistrationNumber,
+				HasPhysicalPresenceIndicator: "true", //if exist
+				IsoCountryCode:               charges[0].BillingCountryCode,
+			},
+		}
+	}
+
+	if _, ok := e.config.TaxCalculationParams.DivisionAU[charges[0].RakutenCountry]; ok {
 		payload.InvoiceRequest.Seller.Division = "RM_AU"
 		payload.InvoiceRequest.Seller.TaxRegistration = []model.TaxRegistrationInvoice{
 			{
 				TaxRegistrationNumber:        e.config.TaxCalculationParams.TaxIdAU,
 				HasPhysicalPresenceIndicator: "true",
-				IsoCountryCode:               charges[0].BillingCountryCode,
+				IsoCountryCode:               e.config.TaxCalculationParams.RegistrationIsoAU,
 			},
 		}
 
-	} else if _, ok := e.config.TaxCalculationParams.DivisionUS[charges[0].Country]; ok {
+	} else if _, ok := e.config.TaxCalculationParams.DivisionUS[charges[0].RakutenCountry]; ok {
 		payload.InvoiceRequest.Seller.Division = "RM_US"
 		payload.InvoiceRequest.Seller.TaxRegistration = []model.TaxRegistrationInvoice{
 			{
 				TaxRegistrationNumber:        e.config.TaxCalculationParams.TaxIdUS,
 				HasPhysicalPresenceIndicator: "true",
-				IsoCountryCode:               charges[0].BillingCountryCode,
+				IsoCountryCode:               e.config.TaxCalculationParams.RegistrationIsoUS,
 			},
 		}
-	} else if _, ok := e.config.TaxCalculationParams.DivisionEU[charges[0].Country]; ok {
+	} else if _, ok := e.config.TaxCalculationParams.DivisionEU[charges[0].RakutenCountry]; ok {
 		payload.InvoiceRequest.Seller.Division = "RM_EU"
 		payload.InvoiceRequest.Seller.TaxRegistration = []model.TaxRegistrationInvoice{
 			{
 				TaxRegistrationNumber:        e.config.TaxCalculationParams.TaxIdEU,
 				HasPhysicalPresenceIndicator: "true",
-				IsoCountryCode:               charges[0].BillingCountryCode,
+				IsoCountryCode:               e.config.TaxCalculationParams.RegistrationIsoEU,
 			},
 		}
 
@@ -111,6 +118,10 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge, billingDate
 	}
 
 	log.Infof("request: %v", string(requestBody))
+
+	log.WithFields(log.Fields{
+		"request": strings.Replace(string(requestBody), `\`, "", -1),
+	}).Infof("billing_settings_request: %v", charges[0].BillingSettings)
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%v/v1/CalculateTax90", e.config.TaxCalculationService.Address), bytes.NewBuffer(requestBody))
 	if err != nil {
@@ -142,6 +153,10 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge, billingDate
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, errors.Wrap(err, "parsing result failed")
 	}
-	log.Infof("response: %v", string(body))
+
+	log.WithFields(log.Fields{
+		"request_response": strings.Replace(string(body), `\`, "", -1),
+	}).Infof("billing_settings_response: %v", charges[0].BillingSettings)
+
 	return result, nil
 }
