@@ -16,10 +16,11 @@ import (
 )
 
 var (
-	user string
-	pass string
-	addr string
-	name string
+	user  string
+	pass  string
+	addr  string
+	name  string
+	token string
 )
 
 func main() {
@@ -28,19 +29,19 @@ func main() {
 	pg := initPostgres(cfg)
 
 	httpClient := &http.Client{
-		Timeout: time.Duration(15 * time.Second),
+		Timeout: time.Duration(60 * time.Second),
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 			DialContext: (&net.Dialer{
-				Timeout:   time.Second,
-				KeepAlive: 30 * time.Second,
+				Timeout:   60 * time.Second,
+				KeepAlive: 60 * time.Second,
 				DualStack: true,
 			}).DialContext,
 			MaxIdleConns:          100,
 			MaxIdleConnsPerHost:   100,
-			IdleConnTimeout:       90 * time.Second,
+			IdleConnTimeout:       180 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
+			ExpectContinueTimeout: 5 * time.Second,
 		},
 	}
 
@@ -67,11 +68,13 @@ func initConfig() *config.Config {
 	if user != "" &&
 		pass != "" &&
 		addr != "" &&
-		name != "" {
+		name != "" &&
+		token != "" {
 		cfg.Postgres.User = user
 		cfg.Postgres.Pass = pass
 		cfg.Postgres.Addr = addr
 		cfg.Postgres.Database = name
+		cfg.TaxCalculationService.AuthToken = token
 	}
 
 	log.Info("Config was successfully initialized")

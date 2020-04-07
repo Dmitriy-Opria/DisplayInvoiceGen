@@ -15,8 +15,9 @@ type Config struct {
 	ListenAddress string
 	Production    bool
 
-	Postgres PostgresConfig
-	External ExternalService
+	Postgres              PostgresConfig
+	TaxCalculationService ExternalService
+	TaxCalculationParams  ExternalParams
 }
 
 // PostgresConfig configuration structure for postgres database
@@ -29,7 +30,23 @@ type PostgresConfig struct {
 }
 
 type ExternalService struct {
-	Addr string
+	Address   string
+	AuthToken string
+}
+
+type ExternalParams struct {
+	CompanyName       string
+	RegistrationAU    map[string]struct{}
+	RegistrationUS    map[string]struct{}
+	RegistrationEU    map[string]struct{}
+	RegistrationIsoAU string
+	RegistrationIsoUS string
+	RegistrationIsoEU string
+	TaxIdUS           string
+	TaxIdAU           string
+	TaxIdEU           string
+	ProductClass      string
+	TransactionType   string
 }
 
 // Validate validate config structure
@@ -38,7 +55,7 @@ func (c Config) Validate() error {
 		v.Field(&c.Version, v.Required),
 		v.Field(&c.ListenAddress, v.Required),
 		v.Field(&c.Postgres),
-		v.Field(&c.External),
+		v.Field(&c.TaxCalculationService),
 	)
 }
 
@@ -55,7 +72,7 @@ func (p PostgresConfig) Validate() error {
 // Validate external service config structure
 func (p ExternalService) Validate() error {
 	return v.ValidateStruct(&p,
-		v.Field(&p.Addr, v.Required),
+		v.Field(&p.Address, v.Required),
 	)
 }
 
@@ -89,7 +106,38 @@ func initConfig(body []byte) *Config {
 	c.Postgres.Database = vip.GetString("PG_NAME")
 	c.Postgres.Debug = vip.GetBool("PG_DEBUG")
 
-	c.External.Addr = vip.GetString("API_ADDRES")
+	c.TaxCalculationService.Address = vip.GetString("API_ADDRESS")
+	c.TaxCalculationService.AuthToken = vip.GetString("API_AUTHORIZATION_TOKEN")
+
+	c.TaxCalculationParams.CompanyName = vip.GetString("COMPANY_NAME")
+	c.TaxCalculationParams.ProductClass = vip.GetString("PRODUCT_CLASS")
+	c.TaxCalculationParams.TransactionType = vip.GetString("TRANSACTION_TYPE")
+
+	c.TaxCalculationParams.RegistrationIsoAU = vip.GetString("AU_ISO_REGISTRATION")
+	c.TaxCalculationParams.RegistrationIsoUS = vip.GetString("US_ISO_REGISTRATION")
+	c.TaxCalculationParams.RegistrationIsoEU = vip.GetString("EU_ISO_REGISTRATION")
+
+	c.TaxCalculationParams.TaxIdUS = vip.GetString("TAX_ID_US")
+	c.TaxCalculationParams.TaxIdAU = vip.GetString("TAX_ID_AU")
+	c.TaxCalculationParams.TaxIdEU = vip.GetString("TAX_ID_EU")
+
+	RegistrationAU := vip.GetStringSlice("AU_REGISTRATION")
+	RegistrationUS := vip.GetStringSlice("US_REGISTRATION")
+	RegistrationEU := vip.GetStringSlice("EU_REGISTRATION")
+
+	c.TaxCalculationParams.RegistrationAU = map[string]struct{}{}
+	c.TaxCalculationParams.RegistrationUS = map[string]struct{}{}
+	c.TaxCalculationParams.RegistrationEU = map[string]struct{}{}
+
+	for _, division := range RegistrationAU {
+		c.TaxCalculationParams.RegistrationAU[division] = struct{}{}
+	}
+	for _, division := range RegistrationUS {
+		c.TaxCalculationParams.RegistrationUS[division] = struct{}{}
+	}
+	for _, division := range RegistrationEU {
+		c.TaxCalculationParams.RegistrationEU[division] = struct{}{}
+	}
 
 	if err := c.Validate(); err != nil {
 		log.Fatalf("can't validate config, err %s", err.Error())

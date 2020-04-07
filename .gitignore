@@ -1,0 +1,22 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.tar.gz
+*.json
+*.txt
+
+/app/click_parser/click_date_key=2019-04-15/
+/app/click_parser/export.click.tar.gz
+/app/click_parser/testtar/
+/test_db
+/test_topic
+.idea/
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
