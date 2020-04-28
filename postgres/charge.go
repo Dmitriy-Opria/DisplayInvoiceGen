@@ -20,6 +20,7 @@ type Charge struct {
 	BillingCountryCode        string   `json:"BillingCountryCode"        sql:"BillingCountryCode"`
 	VATRegistrationNumber     string   `json:"VATRegistrationNumber"     sql:"c2g__VATRegistrationNumber__c"`
 	RakutenCountry            string   `json:"RakutenCountry"            sql:"c2g__Country__c"`
+	ChargeId				  int64	   `json:"ChargeId" 				 sql:"charge_id"`
 }
 
 func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error) {
@@ -40,10 +41,10 @@ func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error
 				a."BillingCountryCode",
 				--Seller VAT and RakutenCountry Code
 				comp."c2g__VATRegistrationNumber__c",
-				comp."c2g__Country__c"
+				comp."c2g__Country__c",
+				c.charge_id
 			from public.charge c
-			join sfdc."Program" p on c.program_id = p."Id"
-			and billing_date = '%s'
+			join sfdc."Program" p on c.program_id = p."Id" and billing_date = '%s'
 			join sfdc."BillingSetting" b on p."GBS_Billing_Setting__c" = b."Id"
 			join sfdc."Company" comp on b."Company__c" = comp."Id"
 			join public.Account acct on b."Account__c" = acct.Id	
