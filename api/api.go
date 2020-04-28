@@ -66,6 +66,7 @@ func (a *Api) Run() {
 			once.Do(func() {
 
 				a.Deps.Postgres.Close()
+				a.Deps.Consumer.Shutdown()
 				log.Warnf("Tax calculator stopped successfully")
 
 				cleanupDone <- true

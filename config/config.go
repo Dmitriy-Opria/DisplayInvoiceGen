@@ -16,6 +16,7 @@ type Config struct {
 	Production    bool
 
 	Postgres              PostgresConfig
+	Rabbit                RabbitConfig
 	TaxCalculationService ExternalService
 	TaxCalculationParams  ExternalParams
 }
@@ -27,6 +28,21 @@ type PostgresConfig struct {
 	Pass     string
 	Database string
 	Debug    bool
+}
+
+type RabbitConfig struct {
+	Host  string
+	Port  int
+	User  string
+	Pass  string
+	VHost string
+
+	ConsumerExchangeName string
+	ConsumerQueueName    string
+	ConsumerRouteKey     string
+
+	ProducerQueueName string
+	ProducerRouteKey  string
 }
 
 type ExternalService struct {
@@ -69,6 +85,22 @@ func (p PostgresConfig) Validate() error {
 	)
 }
 
+// Validate rabbitMQ config structure
+func (r RabbitConfig) Validate() error {
+	return v.ValidateStruct(&r,
+		v.Field(&r.Host, v.Required),
+		v.Field(&r.Port, v.Required),
+		v.Field(&r.User, v.Required),
+		v.Field(&r.Pass, v.Required),
+		//v.Field(&r.VHost, v.Required),
+		v.Field(&r.ConsumerExchangeName, v.Required),
+		v.Field(&r.ConsumerQueueName, v.Required),
+		v.Field(&r.ConsumerRouteKey, v.Required),
+		v.Field(&r.ProducerQueueName, v.Required),
+		v.Field(&r.ProducerRouteKey, v.Required),
+	)
+}
+
 // Validate external service config structure
 func (p ExternalService) Validate() error {
 	return v.ValidateStruct(&p,
@@ -105,6 +137,19 @@ func initConfig(body []byte) *Config {
 	c.Postgres.Pass = vip.GetString("PG_PASS")
 	c.Postgres.Database = vip.GetString("PG_NAME")
 	c.Postgres.Debug = vip.GetBool("PG_DEBUG")
+
+	c.Rabbit.Host = vip.GetString("RABBIT_HOST")
+	c.Rabbit.Port = vip.GetInt("RABBIT_PORT")
+	c.Rabbit.User = vip.GetString("RABBIT_USER")
+	c.Rabbit.Pass = vip.GetString("RABBIT_PASS")
+	c.Rabbit.VHost = vip.GetString("RABBIT_VHOST")
+
+	c.Rabbit.ConsumerExchangeName = vip.GetString("RABBIT_CONSUMER_EXCHANGE_NAME")
+	c.Rabbit.ConsumerQueueName = vip.GetString("RABBIT_CONSUMER_QUEUE_NAME")
+	c.Rabbit.ConsumerRouteKey = vip.GetString("RABBIT_CONSUMER_ROUTE_KEY")
+
+	c.Rabbit.ProducerQueueName = vip.GetString("RABBIT_PRODUCER_QUEUE_NAME")
+	c.Rabbit.ProducerRouteKey = vip.GetString("RABBIT_PRODUCER_ROUTE_KEY")
 
 	c.TaxCalculationService.Address = vip.GetString("API_ADDRESS")
 	c.TaxCalculationService.AuthToken = vip.GetString("API_AUTHORIZATION_TOKEN")
