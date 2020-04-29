@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"time"
 
 	"github.com/jinzhu/now"
@@ -89,6 +90,11 @@ func CombineInvoiceLineItem(id int64, invoiceResponse *model.Response) []*postgr
 		invoiceLineItem.LineItemAmount = lineItem.ExtendedPrice
 		invoiceLineItem.LineItemTaxAmount = lineItem.Taxes[0].CalculatedTax
 		invoiceLineItem.LineItemTotalAmount = math.Round((invoiceLineItem.LineItemAmount+invoiceLineItem.LineItemTaxAmount)*100) / 100
+
+		chargeID, err := strconv.Atoi(lineItem.LineItemID)
+		if err == nil {
+			invoiceLineItem.ChargeID = int64(chargeID)
+		}
 
 		invoiceLineItems = append(invoiceLineItems, invoiceLineItem)
 	}
