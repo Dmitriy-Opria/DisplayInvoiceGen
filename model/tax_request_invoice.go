@@ -28,6 +28,7 @@ type LineItemInvoice struct {
 	Product        ProductInvoice `json:"product"`
 	ExtendedPrice  string         `json:"extendedPrice"`
 	LineItemNumber string         `json:"lineItemNumber"`
+	LineItemID     int64          `json:"lineItemId"`
 }
 
 type Destination struct {

@@ -14,13 +14,13 @@ type Charge struct {
 	Account                   string   `json:"Account"                   sql:"Account__c"`
 	ChargeAmount              float64  `json:"ChargeAmount"              sql:"charge_amount"`
 	ChangeCurrency            string   `json:"ChangeCurrency"            sql:"charge_currency"`
-	SapCustomerID             string   `json:"SapCustomerID"             sql:"sap_customer_id__c"`
-	PaymentsTermsSap          string   `json:"PaymentsTermsSap"          sql:"payment_terms_sap__c"`
-	CODAVATRegistrationNumber string   `json:"CODAVATRegistrationNumber" sql:"c2g__CODAVATRegistrationNumber__c"`
+	SapCustomerID             string   `json:"SapCustomerID"             sql:"SAP_Customer_ID__c"`
+	PaymentsTermsSap          string   `json:"PaymentsTermsSap"          sql:"Payment_Terms_SAP__c"`
+	CODAVATRegistrationNumber string   `json:"CODAVATRegistrationNumber" sql:"Tax_Registration_Number__c"`
 	BillingCountryCode        string   `json:"BillingCountryCode"        sql:"BillingCountryCode"`
 	VATRegistrationNumber     string   `json:"VATRegistrationNumber"     sql:"c2g__VATRegistrationNumber__c"`
 	RakutenCountry            string   `json:"RakutenCountry"            sql:"c2g__Country__c"`
-	ChargeId				  int64	   `json:"ChargeId" 				 sql:"charge_id"`
+	ChargeID                  int64    `json:"ChargeId" 				 sql:"charge_id"`
 }
 
 func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error) {
@@ -34,10 +34,10 @@ func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error
 				b."Account__c",
 				c.charge_amount,
 				c.charge_currency,
-				acct.sap_customer_id__c,
-				acct.payment_terms_sap__c,
+				a."SAP_Customer_ID__c",
+				a."Payment_Terms_SAP__c",
 				--Customer VAT and RakutenCountry Code
-				a."c2g__CODAVATRegistrationNumber__c", 
+				a."Tax_Registration_Number__c",
 				a."BillingCountryCode",
 				--Seller VAT and RakutenCountry Code
 				comp."c2g__VATRegistrationNumber__c",
@@ -46,8 +46,7 @@ func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error
 			from public.charge c
 			join sfdc."Program" p on c.program_id = p."Id" and billing_date = '%s'
 			join sfdc."BillingSetting" b on p."GBS_Billing_Setting__c" = b."Id"
-			join sfdc."Company" comp on b."Company__c" = comp."Id"
-			join public.Account acct on b."Account__c" = acct.Id	
+			join sfdc."Company" comp on b."Company__c" = comp."Id"	
 			join sfdc."Account" a on b."Account__c" = a."Id"
 			order by p."GBS_Billing_Setting__c"`, billingDate)
 
