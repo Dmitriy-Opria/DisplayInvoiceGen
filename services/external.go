@@ -146,6 +146,9 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge) (*model.Res
 		return nil, errors.Wrap(err, "reading index body failed")
 	}
 
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New(fmt.Sprintf("invalid status code, expected 200, got: %v, cody %v", response.StatusCode, string(body)))
+	}
 	if response.StatusCode != 200 {
 		return nil, fmt.Errorf("index request failed with code %v and body: %v", response.StatusCode, string(body))
 	}

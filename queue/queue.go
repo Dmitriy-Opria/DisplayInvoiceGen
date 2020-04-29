@@ -46,7 +46,7 @@ func (q *Wrapper) Run() error {
 				continue
 			}
 
-			d.Ack(false)
+			q.deps.Producer.Send(string(d.Body))
 		}
 		log.Warnf("handle: deliveries channel closed")
 		q.deps.Consumer.Done(nil)

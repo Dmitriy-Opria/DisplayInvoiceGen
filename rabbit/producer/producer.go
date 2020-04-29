@@ -54,6 +54,19 @@ func (r *RabbitWrapper) Send(body string) error {
 	}
 	defer ch.Close()
 
+	err = ch.ExchangeDeclare(
+		r.conf.Rabbit.ConsumerExchangeName, // name
+		"topic",                            // type
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return errors.Wrap(err, "Failed to setup exchange for consuming")
+	}
 	q, err := ch.QueueDeclare(
 		r.conf.Rabbit.ProducerQueueName, // name
 		true,
@@ -66,9 +79,20 @@ func (r *RabbitWrapper) Send(body string) error {
 		return errors.Wrap(err, "Failed to get a queue for publishing")
 	}
 
+	err = ch.QueueBind(
+		q.Name, // name
+		r.conf.Rabbit.ProducerRouteKey,
+		r.conf.Rabbit.ConsumerExchangeName,
+		false,
+		nil,
+	)
+	if err != nil {
+		return errors.Wrap(err, "Failed to bind a queue for consuming")
+	}
+
 	err = ch.Publish(
-		"",
-		q.Name, // routing key
+		r.conf.Rabbit.ConsumerExchangeName,
+		r.conf.Rabbit.ProducerRouteKey,
 		false,
 		false,
 		amqp.Publishing{

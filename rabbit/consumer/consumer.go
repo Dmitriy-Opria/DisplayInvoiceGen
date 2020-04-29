@@ -64,19 +64,45 @@ func (r *RabbitWrapper) GetChannel() (<-chan amqp.Delivery, error) {
 
 	r.Channel = ch
 
-	q, err := ch.QueueDeclare(
-		r.conf.Rabbit.ConsumerQueueName, // name
-		false,
+	err = ch.ExchangeDeclare(
+		r.conf.Rabbit.ConsumerExchangeName, // name
+		"topic",                            // type
+		true,
 		false,
 		false,
 		false,
 		nil,
 	)
+
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to get a queue for consuming")
+		return nil, errors.Wrap(err, "Failed to setup exchange for consuming")
+	}
+
+	q, err := ch.QueueDeclare(
+		r.conf.Rabbit.ConsumerQueueName, // name
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to declare a queue for consuming")
+	}
+
+	err = ch.QueueBind(
+		q.Name, // name
+		r.conf.Rabbit.ConsumerRouteKey,
+		r.conf.Rabbit.ConsumerExchangeName,
+		false,
+		nil,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to bind a queue for consuming")
 	}
 	msgs, err := ch.Consume(
-		q.Name, // queue
+		r.conf.Rabbit.ConsumerQueueName, // queue
 		r.consumerName,
 		true,
 		false,
