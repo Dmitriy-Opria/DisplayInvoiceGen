@@ -13,14 +13,14 @@ type Invoice struct {
 	InvoiceAmount   float64    `json:"InvoiceAmount"          sql:"invoiceamount"`
 	TaxRate         float64    `json:"TaxRate"                sql:"taxrate,notnull,type:numeric"`
 	AccountNumber   string     `json:"AccountNumber"          sql:"accountnumber"`   // Account__c
-	SAPCustomerID   string     `json:"SAPCustomerID"          sql:"sapcustomerid"`   // sap_customer_id__c
-	PaymentTerms    string     `json:"PaymentTerms"           sql:"paymentterms"`    // payment_terms_sap__c
+	SAPCustomerID   string     `json:"SAPCustomerID"          sql:"sapcustomerid"`   // SAP_Customer_ID__c
+	PaymentTerms    string     `json:"PaymentTerms"           sql:"paymentterms"`    // Payment_Terms_SAP__c
 	InvoiceCurrency string     `json:"InvoiceCurrency"        sql:"invoicecurrency"` // charge_currency
 	InvoiceEmailed  bool       `json:"InvoiceEmailed"         sql:"invoiceemailed"`
 	InsertDate      time.Time  `json:"InsertDate"             sql:"insertdate"`      // System Date
 	UpdateDate      *time.Time `json:"UpdateDate"             sql:"updatedate"`      // Null
 	EmailDate       *time.Time `json:"EmailDate"              sql:"emaildate"`       // Null
-	InvoiceDueDate  string     `json:"InvoiceDueDate"         sql:"invoiceduedate"`  // If a invoice is generated in March, then base on "payment_terms_sap__c" the InvoiceDueDate should be calculated -- 31 MAR 2020
+	InvoiceDueDate  string     `json:"InvoiceDueDate"         sql:"invoiceduedate"`  // If a invoice is generated in March, then base on "Payment_Terms_SAP__c" the InvoiceDueDate should be calculated -- 31 MAR 2020
 	InvoicePeriod   string     `json:"InvoicePeriod"          sql:"invoiceperiod"`   // InvoiceDueDate - 1 Month -- Feb 2020
 	InvoicePostDate string     `json:"InvoicePostDate"        sql:"invoicepostdate"` // Invoice Run Date -- 10 MAR 2020
 	BillingDate     string     `json:"BillingDate"            sql:"billingdate"`     // InvoiceDueDate + 1 or Invoice Run Month -- 1 MAR 2020

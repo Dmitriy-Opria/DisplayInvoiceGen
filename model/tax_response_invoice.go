@@ -209,7 +209,7 @@ type LineItem struct {
 	NatureOfTransaction              interface{}   `json:"natureOfTransaction"`
 	IntrastatCommodityCode           interface{}   `json:"intrastatCommodityCode"`
 	NetMassKilograms                 interface{}   `json:"netMassKilograms"`
-	LineItemID                       interface{}   `json:"lineItemId"`
+	LineItemID                       string        `json:"lineItemId"`
 	TaxIncludedIndicator             interface{}   `json:"taxIncludedIndicator"`
 	TransactionType                  interface{}   `json:"transactionType"`
 	SimplificationCode               interface{}   `json:"simplificationCode"`

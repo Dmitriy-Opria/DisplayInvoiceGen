@@ -12,6 +12,7 @@ type InvoiceLineItem struct {
 	LineItemAmount      float64  `json:"LineItemAmount"                     sql:"lineitemamount,notnull,type:numeric"`
 	LineItemTaxAmount   float64  `json:"LineItemTaxAmount"                  sql:"lineitemtaxamount,notnull,type:numeric"`
 	LineItemTotalAmount float64  `json:"LineItemTotalAmount"                sql:"lineitemtotalamount,notnull,type:numeric"`
+	ChargeID            int64    `json:"ChargeID"                			sql:"charge_id,notnull,type:bigint"`
 }
 
 func (p *ConnectionWrapper) AddInvoiceLineItem(invoiceLineItems []*InvoiceLineItem) error {
@@ -37,7 +38,8 @@ func (p *ConnectionWrapper) AddInvoiceLineItem(invoiceLineItems []*InvoiceLineIt
 			Set("lineitemnumber = EXCLUDED.lineitemnumber").
 			Set("lineitemamount = EXCLUDED.lineitemamount").
 			Set("lineitemtaxamount = EXCLUDED.lineitemtaxamount").
-			Set("lineitemtotalamount = EXCLUDED.lineitemtotalamount").Insert()
+			Set("lineitemtotalamount = EXCLUDED.lineitemtotalamount").
+			Set("charge_id = EXCLUDED.charge_id").Insert()
 
 		if err != nil {
 			log.Errorln(err)

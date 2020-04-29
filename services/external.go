@@ -109,6 +109,7 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge) (*model.Res
 				},
 				ExtendedPrice:  fmt.Sprintf("%.2f", line.ChargeAmount),
 				LineItemNumber: strconv.Itoa(index + 1),
+				LineItemID:     line.ChargeID,
 			})
 	}
 
