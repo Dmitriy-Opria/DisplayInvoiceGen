@@ -16,6 +16,7 @@ type IConnection interface {
 	AddInvoiceLineItem(invoiceLineItem []*InvoiceLineItem) error
 
 	CheckInvoiceExist(billingDate string) (bool, error)
+	GetLastMonthTaxRate(billingSettings, companyCountry, customerCountry string, billingTime time.Time) (float64, error)
 
 	GetInvoiceSequence() (int64, error)
 	GetChargedList(billingDate string) ([]*Charge, error)

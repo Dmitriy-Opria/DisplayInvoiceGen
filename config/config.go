@@ -48,6 +48,7 @@ type RabbitConfig struct {
 type ExternalService struct {
 	Address   string
 	AuthToken string
+	Retry     int
 }
 
 type ExternalParams struct {
@@ -105,6 +106,7 @@ func (r RabbitConfig) Validate() error {
 func (p ExternalService) Validate() error {
 	return v.ValidateStruct(&p,
 		v.Field(&p.Address, v.Required),
+		v.Field(&p.Retry, v.Required),
 	)
 }
 
@@ -153,6 +155,7 @@ func initConfig(body []byte) *Config {
 
 	c.TaxCalculationService.Address = vip.GetString("API_ADDRESS")
 	c.TaxCalculationService.AuthToken = vip.GetString("API_AUTHORIZATION_TOKEN")
+	c.TaxCalculationService.Retry = vip.GetInt("ARI_RETRY")
 
 	c.TaxCalculationParams.CompanyName = vip.GetString("COMPANY_NAME")
 	c.TaxCalculationParams.ProductClass = vip.GetString("PRODUCT_CLASS")

@@ -39,14 +39,6 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 
 		for _, list := range groupedList {
 
-			taxResponse, err := a.Deps.ExternalService.GetTaxResponse(list)
-			if err != nil {
-				return &rye.Response{
-					Err:        err,
-					StatusCode: http.StatusExpectationFailed,
-				}
-			}
-
 			id, err := a.Deps.Postgres.GetInvoiceSequence()
 			if err != nil {
 				return &rye.Response{
@@ -55,19 +47,56 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 				}
 			}
 
-			err = a.Deps.Postgres.AddInvoice(utils.CombineInvoice(id, taxResponse, billingTime, list))
+			taxResponse, err := a.Deps.ExternalService.GetTaxResponse(list)
 			if err != nil {
-				return &rye.Response{
-					Err:        errors.Wrap(err, "unable to insert invoice"),
-					StatusCode: http.StatusInternalServerError,
-				}
+				log.WithFields(log.Fields{
+					"invoiceNumber":  id,
+					"billingSetting": list[0].BillingSettings,
+					"billingDate":    billingDate,
+				}).Warnf("error_calling, can't get tax response: %v", err)
 			}
 
-			err = a.Deps.Postgres.AddInvoiceLineItem(utils.CombineInvoiceLineItem(id, taxResponse))
-			if err != nil {
-				return &rye.Response{
-					Err:        errors.Wrap(err, "unable to insert invoice line item"),
-					StatusCode: http.StatusInternalServerError,
+			switch err {
+			case nil:
+				err := a.Deps.Postgres.AddInvoice(utils.CombineInvoice(id, taxResponse, billingTime, list))
+				if err != nil {
+					return &rye.Response{
+						Err:        errors.Wrap(err, "unable to insert invoice"),
+						StatusCode: http.StatusInternalServerError,
+					}
+				}
+
+				err = a.Deps.Postgres.AddInvoiceLineItem(utils.CombineInvoiceLineItem(id, taxResponse))
+				if err != nil {
+					return &rye.Response{
+						Err:        errors.Wrap(err, "unable to insert invoice line item"),
+						StatusCode: http.StatusInternalServerError,
+					}
+				}
+			default:
+				taxRate, err := a.Deps.Postgres.GetLastMonthTaxRate(list[0].BillingSettings, list[0].RakutenCountry, list[0].BillingCountryCode, billingTime)
+				if err != nil {
+					log.WithFields(log.Fields{
+						"invoiceNumber":  id,
+						"billingSetting": list[0].BillingSettings,
+						"billingDate":    billingDate,
+					}).Warnf("error during finding previous taxrate: %v", err)
+				}
+
+				err = a.Deps.Postgres.AddInvoice(utils.CombineCalculatedInvoice(id, taxRate, billingTime, list))
+				if err != nil {
+					return &rye.Response{
+						Err:        errors.Wrap(err, "unable to insert invoice"),
+						StatusCode: http.StatusInternalServerError,
+					}
+				}
+
+				err = a.Deps.Postgres.AddInvoiceLineItem(utils.CombineCalculatedInvoiceLineItem(id, taxRate, list))
+				if err != nil {
+					return &rye.Response{
+						Err:        errors.Wrap(err, "unable to insert invoice line item"),
+						StatusCode: http.StatusInternalServerError,
+					}
 				}
 			}
 

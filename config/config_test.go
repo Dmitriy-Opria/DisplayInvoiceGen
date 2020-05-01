@@ -34,6 +34,7 @@ RABBIT_PRODUCER_ROUTE_KEY: queue.display.pdf.routeKey
 #EXTERNAL SERVICE
 API_ADDRESS: https://sloth-qa.private.linksynergy.com
 API_AUTHORIZATION_TOKEN: 'Bearer'
+ARI_RETRY: 3
 
 #REQUEST PARAMS
 COMPANY_NAME: 'Rakuten'
@@ -83,6 +84,7 @@ var _ = Describe("Invoice config test", func() {
 
 			Expect(conf.TaxCalculationService.AuthToken).To(Equal("Bearer"))
 			Expect(conf.TaxCalculationService.Address).To(Equal("https://sloth-qa.private.linksynergy.com"))
+			Expect(conf.TaxCalculationService.Retry).To(Equal(3))
 
 			Expect(conf.TaxCalculationParams.CompanyName).To(Equal("Rakuten"))
 			Expect(conf.TaxCalculationParams.TransactionType).To(Equal("SALE"))
