@@ -15,15 +15,7 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 
 	billingDate := ctx.Value(ContextBillingDate).(string)
 
-	exist, err := a.Deps.Postgres.CheckInvoiceExist(billingDate)
-	if err != nil || len(billingDate) == 0 {
-		return &rye.Response{
-			Err:        err,
-			StatusCode: http.StatusInternalServerError,
-		}
-	}
-
-	chargedList, err := a.Deps.Postgres.GetChargedList(billingDate)
+	chargedList, err := a.Deps.Postgres.GetNotProcessedChargedList(billingDate)
 	if err != nil {
 		return &rye.Response{
 			Err:        err,
@@ -31,7 +23,7 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 		}
 	}
 
-	if !exist {
+	if len(chargedList) > 0 {
 
 		groupedList := utils.GroupCharges(chargedList)
 

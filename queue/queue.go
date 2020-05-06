@@ -57,17 +57,12 @@ func (q *Wrapper) Run() error {
 
 func (q *Wrapper) CreateInvoice(billingDate string) error {
 
-	exist, err := q.deps.Postgres.CheckInvoiceExist(billingDate)
-	if err != nil || len(billingDate) == 0 {
-		return errors.Wrap(err, "can't check invoice exist")
-	}
-
-	chargedList, err := q.deps.Postgres.GetChargedList(billingDate)
+	chargedList, err := q.deps.Postgres.GetNotProcessedChargedList(billingDate)
 	if err != nil {
 		return errors.Wrap(err, "can't get charged list")
 	}
 
-	if !exist {
+	if len(chargedList) > 0 {
 
 		groupedList := utils.GroupCharges(chargedList)
 

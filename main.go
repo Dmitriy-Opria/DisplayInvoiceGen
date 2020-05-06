@@ -32,9 +32,6 @@ func main() {
 	pg := initPostgres(cfg)
 	consumer := initConsumer(cfg)
 	producer := initProducer(cfg)
-	if err := producer.Send("2020-03-01"); err != nil {
-		log.Warnf("error during sending: %v", err)
-	}
 
 	httpClient := &http.Client{
 		Timeout: time.Duration(60 * time.Second),

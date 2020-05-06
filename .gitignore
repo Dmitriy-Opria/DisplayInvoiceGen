@@ -7,13 +7,12 @@
 *.tar.gz
 *.json
 *.txt
+*.prod.yaml
+*.qa.yaml
 
-/app/click_parser/click_date_key=2019-04-15/
-/app/click_parser/export.click.tar.gz
-/app/click_parser/testtar/
-/test_db
-/test_topic
 .idea/
+invoice_gen.prod.yaml
+invoice_gen.qa.yaml
 
 # Test binary, build with `go test -c`
 *.test

@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"encoding/json"
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 	"github.rakops.com/BNP/DisplayInvoiceGen/config"
@@ -11,6 +12,7 @@ type RabbitProducer interface {
 	Connect() error
 	Close()
 	Send(body string) error
+	SendJSON(request interface{}) error
 }
 
 func NewProducer(conf *config.Config) RabbitProducer {
@@ -65,7 +67,7 @@ func (r *RabbitWrapper) Send(body string) error {
 	)
 
 	if err != nil {
-		return errors.Wrap(err, "Failed to setup exchange for consuming")
+		return errors.Wrap(err, "Failed to setup exchange for publishing")
 	}
 	q, err := ch.QueueDeclare(
 		r.conf.Rabbit.ProducerQueueName, // name
@@ -87,7 +89,7 @@ func (r *RabbitWrapper) Send(body string) error {
 		nil,
 	)
 	if err != nil {
-		return errors.Wrap(err, "Failed to bind a queue for consuming")
+		return errors.Wrap(err, "Failed to bind a queue for publishing")
 	}
 
 	err = ch.Publish(
@@ -98,6 +100,67 @@ func (r *RabbitWrapper) Send(body string) error {
 		amqp.Publishing{
 			ContentType: "text/plain",
 			Body:        []byte(body),
+		})
+
+	return errors.Wrap(err, "Failed to publish msg")
+}
+
+func (r *RabbitWrapper) SendJSON(request interface{}) error {
+	ch, err := r.Connection.Channel()
+	if err != nil {
+		return errors.Wrap(err, "Failed to open a channel")
+	}
+	defer ch.Close()
+
+	err = ch.ExchangeDeclare(
+		r.conf.Rabbit.ConsumerExchangeName, // name
+		"topic",                            // type
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return errors.Wrap(err, "Failed to setup exchange for publishing")
+	}
+	q, err := ch.QueueDeclare(
+		r.conf.Rabbit.ProducerQueueName, // name
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return errors.Wrap(err, "Failed to get a queue for publishing")
+	}
+
+	err = ch.QueueBind(
+		q.Name, // name
+		r.conf.Rabbit.ProducerRouteKey,
+		r.conf.Rabbit.ConsumerExchangeName,
+		false,
+		nil,
+	)
+	if err != nil {
+		return errors.Wrap(err, "Failed to bind a queue for publishing")
+	}
+
+	body, err := json.Marshal(request)
+	if err != nil {
+		return errors.Wrap(err, "Failed to marshal message for publishing")
+	}
+
+	err = ch.Publish(
+		r.conf.Rabbit.ConsumerExchangeName,
+		r.conf.Rabbit.ProducerRouteKey,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        body,
 		})
 
 	return errors.Wrap(err, "Failed to publish msg")

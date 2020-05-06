@@ -20,6 +20,7 @@ type IConnection interface {
 
 	GetInvoiceSequence() (int64, error)
 	GetChargedList(billingDate string) ([]*Charge, error)
+	GetNotProcessedChargedList(billingDate string) ([]*Charge, error)
 }
 
 type IConf interface {
