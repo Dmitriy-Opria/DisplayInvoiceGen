@@ -59,6 +59,7 @@ func (p *ConnectionWrapper) AddInvoice(invoice *Invoice) error {
 
 	return err
 }
+
 // NOT USED
 func (p *ConnectionWrapper) CheckInvoiceExist(billingDate string) (bool, error) {
 	var invoice []*Invoice

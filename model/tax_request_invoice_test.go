@@ -53,6 +53,7 @@ var invoiceRequest = `{
           "productClass": "ASDE"
         },
         "extendedPrice": "100",
+		"lineItemId": 0,
         "lineItemNumber": "1"
       }
     ],

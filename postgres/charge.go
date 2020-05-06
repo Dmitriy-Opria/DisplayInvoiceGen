@@ -22,6 +22,7 @@ type Charge struct {
 	RakutenCountry            string   `json:"RakutenCountry"            sql:"c2g__Country__c"`
 	ChargeID                  int64    `json:"ChargeId" 				 sql:"charge_id"`
 }
+
 // NOT USED
 func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error) {
 	str := time.Now()

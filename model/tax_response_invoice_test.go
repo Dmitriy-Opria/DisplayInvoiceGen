@@ -248,6 +248,7 @@ var invoiceResponse = `{
                     ]
                 },
                 "lineItem": [],
+				"lineItemId": "",
                 "lineItemNumber": 1,
                 "taxDate": null,
                 "isMulticomponent": null,
@@ -267,7 +268,7 @@ var invoiceResponse = `{
                 "natureOfTransaction": null,
                 "intrastatCommodityCode": null,
                 "netMassKilograms": null,
-                "lineItemId": null,
+                "lineItemId": "",
                 "taxIncludedIndicator": null,
                 "transactionType": null,
                 "simplificationCode": null,
