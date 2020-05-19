@@ -3,9 +3,10 @@ package postgres
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/jinzhu/now"
 	"github.rakops.com/BNP/DisplayInvoiceGen/log"
-	"time"
 )
 
 type Invoice struct {

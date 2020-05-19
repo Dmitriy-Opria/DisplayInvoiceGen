@@ -18,14 +18,6 @@ import (
 	"github.rakops.com/BNP/DisplayInvoiceGen/services"
 )
 
-var (
-	user  string
-	pass  string
-	addr  string
-	name  string
-	token string
-)
-
 func main() {
 	initLogger()
 	cfg := initConfig()
@@ -80,18 +72,6 @@ func main() {
 
 func initConfig() *config.Config {
 	cfg := config.InitConfig()
-	if user != "" &&
-		pass != "" &&
-		addr != "" &&
-		name != "" &&
-		token != "" {
-		cfg.Postgres.User = user
-		cfg.Postgres.Pass = pass
-		cfg.Postgres.Addr = addr
-		cfg.Postgres.Database = name
-		cfg.TaxCalculationService.AuthToken = token
-	}
-
 	log.Info("Config was successfully initialized")
 	return cfg
 }

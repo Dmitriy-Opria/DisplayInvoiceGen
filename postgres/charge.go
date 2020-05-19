@@ -2,9 +2,10 @@ package postgres
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/go-pg/pg"
 	"github.rakops.com/BNP/DisplayInvoiceGen/log"
-	"time"
 )
 
 type Charge struct {

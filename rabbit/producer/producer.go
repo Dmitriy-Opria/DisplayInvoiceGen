@@ -2,6 +2,7 @@ package producer
 
 import (
 	"encoding/json"
+
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 	"github.rakops.com/BNP/DisplayInvoiceGen/config"

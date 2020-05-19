@@ -112,7 +112,7 @@ func (p ExternalService) Validate() error {
 
 // InitConfig initialize application configuration and validate all fields
 func InitConfig() *Config {
-	body, err := ioutil.ReadFile("config.yml")
+	body, err := ioutil.ReadFile("config.yaml")
 	if err != nil {
 		log.Fatalf("can't init config, err %s", err.Error())
 	}

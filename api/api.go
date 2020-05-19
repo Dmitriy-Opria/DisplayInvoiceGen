@@ -3,17 +3,18 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/InVisionApp/rye"
-	"github.com/sirupsen/logrus"
-	"github.rakops.com/BNP/DisplayInvoiceGen/config"
-	"github.rakops.com/BNP/DisplayInvoiceGen/deps"
-	"github.rakops.com/BNP/DisplayInvoiceGen/log"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/InVisionApp/rye"
+	"github.com/sirupsen/logrus"
+	"github.rakops.com/BNP/DisplayInvoiceGen/config"
+	"github.rakops.com/BNP/DisplayInvoiceGen/deps"
+	"github.rakops.com/BNP/DisplayInvoiceGen/log"
 )
 
 type contextKey int

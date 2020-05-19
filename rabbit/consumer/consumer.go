@@ -1,20 +1,9 @@
 package consumer
 
 import (
-	"time"
-
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 	"github.rakops.com/BNP/DisplayInvoiceGen/config"
-)
-
-const (
-	exchange     = "test-exchange"   // "Durable, non-auto-deleted AMQP exchange name")
-	exchangeType = "direct"          // "Exchange type - direct|fanout|topic|x-custom")
-	queue        = "test-queue"      // "Ephemeral AMQP queue name")
-	bindingKey   = "test-key"        // "AMQP binding key")
-	consumerTag  = "simple-consumer" // "AMQP consumer tag (should not be blank)")
-	lifetime     = 5 * time.Second   // "lifetime of process before shutdown (0s=infinite)")
 )
 
 type RabbitConsumer interface {
