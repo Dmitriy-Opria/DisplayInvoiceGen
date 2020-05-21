@@ -61,22 +61,6 @@ func (p *ConnectionWrapper) AddInvoice(invoice *Invoice) error {
 	return err
 }
 
-// NOT USED
-func (p *ConnectionWrapper) CheckInvoiceExist(billingDate string) (bool, error) {
-	var invoice []*Invoice
-	query := fmt.Sprintf(`SELECT  * from public.invoice where billingdate='%s'`, billingDate)
-	_, err := p.client.Query(&invoice, query)
-
-	if err != nil {
-		log.Warnf("can't execute pg query: %s", err)
-		return false, err
-	}
-	if len(invoice) > 0 {
-		return true, nil
-	}
-	return false, nil
-}
-
 func (p *ConnectionWrapper) GetLastMonthTaxRate(billingSettings, companyCountry, customerCountry string, billingTime time.Time) (float64, error) {
 	var invoice []*Invoice
 
