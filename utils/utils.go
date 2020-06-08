@@ -9,6 +9,7 @@ import (
 	"github.com/jinzhu/now"
 	"github.rakops.com/BNP/DisplayInvoiceGen/model"
 	"github.rakops.com/BNP/DisplayInvoiceGen/postgres"
+	"github.rakops.com/BNP/DisplayInvoiceGen/salesforce"
 )
 
 func GroupCharges(chargedList []*postgres.Charge) map[string][]*postgres.Charge {
@@ -174,4 +175,50 @@ func CombineCalculatedInvoiceLineItem(id int64, taxRate float64, charges []*post
 	}
 
 	return invoiceLineItems
+}
+
+func ConvertInvoice(invoices []*postgres.InvoiceUp) []*salesforce.Invoice {
+	resp := []*salesforce.Invoice{}
+	for index := range invoices {
+		dueDate := ""
+		if len(invoices[index].InvoiceDueDate) > 10 {
+			dueDate = invoices[index].InvoiceDueDate[:10]
+		}
+		invoice := &salesforce.Invoice{
+			Name:            invoices[index].PDFnumber,
+			InvoiceNumber:   invoices[index].InvoiceNumber,
+			BillingSettings: invoices[index].BillingSetting,
+			InvoiceAmount:   invoices[index].InvoiceAmount,
+			TaxTotal:        invoices[index].TaxTotal,
+			Account:         invoices[index].AccountNumber,
+			SAPCustomerID:   invoices[index].SAPCustomerID,
+			CurrencyIsoCode: invoices[index].InvoiceCurrency,
+			InvoiceDate:     invoices[index].BillingDate,
+			InvoiceDueDate:  dueDate,
+			Company:         invoices[index].CompanyName,
+			PONumber:        invoices[index].PONumber,
+			RecordTypeId:    "0122f0000008t9iAAA",
+		}
+
+		resp = append(resp, invoice)
+	}
+	return resp
+}
+
+func ConvertInvoiceLineItems(invoiceLineItems []*postgres.InvoiceLineItemUP) []*salesforce.InvoiceLineItem {
+	resp := []*salesforce.InvoiceLineItem{}
+
+	for index := range invoiceLineItems {
+		invoiceLineItem := &salesforce.InvoiceLineItem{
+			InvoiceNumber:       invoiceLineItems[index].InvoiceNumber,
+			LineItemTaxAmount:   invoiceLineItems[index].LineItemTaxAmount,
+			LineItemAmount:      invoiceLineItems[index].LineItemAmount,
+			LineItemTotalAmount: invoiceLineItems[index].LineItemTotalAmount,
+			CurrencyIsoCode:     invoiceLineItems[index].InvoiceCurrency,
+			Description:         invoiceLineItems[index].Description,
+			LineItemNumber:      invoiceLineItems[index].LineItemNumber,
+		}
+		resp = append(resp, invoiceLineItem)
+	}
+	return resp
 }

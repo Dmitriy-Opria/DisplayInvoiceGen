@@ -13,12 +13,15 @@ type IConnection interface {
 	IsAlive() bool
 
 	AddInvoice(invoice *Invoice) error
+	GetInvoices(billingDate string, approved bool) ([]*InvoiceUp, error)
+	MarkInvoiceAsPublished(invoiceNumbers []int64) error
+
 	AddInvoiceLineItem(invoiceLineItem []*InvoiceLineItem) error
+	GetInvoicesLineItems(billingDate string, approved bool) ([]*InvoiceLineItemUP, error)
 
 	GetInvoiceSequence() (int64, error)
 	GetLastMonthTaxRate(billingSettings, companyCountry, customerCountry string, billingTime time.Time) (float64, error)
 
-	GetChargedList(billingDate string) ([]*Charge, error)
 	GetNotProcessedChargedList(billingDate string) ([]*Charge, error)
 }
 

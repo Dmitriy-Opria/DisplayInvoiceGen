@@ -2,1270 +2,438 @@ package model
 
 import (
 	"encoding/json"
-	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
-var responseBody = `{
-  "outdata": {
-    "companyId": 0,
-    "companyName": "string",
-    "companyRole": "string",
-    "externalCompanyId": "string",
-    "invoice": [
-      {
-        "basisPercent": "string",
-        "calculationDirection": "string",
-        "callingSystemNumber": "string",
-        "companyId": 0,
-        "companyName": "string",
-        "companyRole": "string",
-        "currencyCode": "string",
-        "currencyName": "string",
-        "customerGroupName": "string",
-        "customerGroupOwner": "string",
-        "customerName": "string",
-        "customerNumber": "string",
-        "endUserName": "string",
-        "externalCompanyId": "string",
-        "fiscalDate": "string",
-        "functionalCurrencyCode": "string",
-        "hostSystem": "string",
-        "indata": {
-          "callingSystemNumber": "string",
-          "companyId": 0,
-          "companyName": "string",
-          "companyRole": "string",
-          "externalCompanyId": "string",
-          "hostRequestInfo": {
-            "hostRequestId": "string",
-            "hostRequestLogEntryId": "string"
-          },
-          "hostSystem": "string",
-          "invoice": [
-            {
-              "allocationGroupName": "string",
-              "allocationGroupOwner": "string",
-              "allocationName": "string",
-              "autoCreateCertificates": "string",
-              "autoCreateCustomers": "string",
-              "basisPercent": "string",
-              "billTo": {
-                "address1": "string",
-                "address2": "string",
-                "address3": "string",
-                "addressValidationMode": "string",
-                "city": "string",
-                "companyBranchId": "string",
-                "country": "string",
-                "county": "string",
-                "defaultAddressValidationMode": "string",
-                "district": "string",
-                "geocode": "string",
-                "isBonded": "string",
-                "locationTaxCategory": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "buyerPrimary": {
-                "address1": "string",
-                "address2": "string",
-                "address3": "string",
-                "addressValidationMode": "string",
-                "city": "string",
-                "companyBranchId": "string",
-                "country": "string",
-                "county": "string",
-                "defaultAddressValidationMode": "string",
-                "district": "string",
-                "geocode": "string",
-                "isBonded": "string",
-                "locationTaxCategory": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "calculationDirection": "string",
-              "callingSystemNumber": "string",
-              "companyId": 0,
-              "companyName": "string",
-              "companyRole": "string",
-              "countryOfOrigin": "string",
-              "currencyCode": "string",
-              "customerGroupName": "string",
-              "customerGroupOwner": "string",
-              "customerName": "string",
-              "customerNumber": "string",
-              "deliveryTerms": "string",
-              "deptOfConsign": "string",
-              "documentType": "string",
-              "endUse": [
-                "string"
-              ],
-              "endUserName": "string",
-              "establishments": {
-                "buyerRole": {
-                  "billTo": "string",
-                  "buyerPrimary": "string",
-                  "middleman": "string",
-                  "orderAcceptance": "string",
-                  "orderOrigin": "string",
-                  "sellerPrimary": "string",
-                  "shipFrom": "string",
-                  "shipTo": "string",
-                  "supply": "string"
-                },
-                "middlemanRole": {
-                  "billTo": "string",
-                  "buyerPrimary": "string",
-                  "middleman": "string",
-                  "orderAcceptance": "string",
-                  "orderOrigin": "string",
-                  "sellerPrimary": "string",
-                  "shipFrom": "string",
-                  "shipTo": "string",
-                  "supply": "string"
-                },
-                "sellerRole": {
-                  "billTo": "string",
-                  "buyerPrimary": "string",
-                  "middleman": "string",
-                  "orderAcceptance": "string",
-                  "orderOrigin": "string",
-                  "sellerPrimary": "string",
-                  "shipFrom": "string",
-                  "shipTo": "string",
-                  "supply": "string"
-                }
-              },
-              "exemptAmount": {
-                "city": "string",
-                "country": "string",
-                "county": "string",
-                "district": "string",
-                "geocode": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "exemptCertificate": {
-                "city": "string",
-                "country": "string",
-                "county": "string",
-                "district": "string",
-                "geocode": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "exemptReason": {
-                "city": "string",
-                "country": "string",
-                "county": "string",
-                "district": "string",
-                "geocode": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "externalCompanyId": "string",
-              "filterGroupName": "string",
-              "filterGroupOwner": "string",
-              "fiscalDate": "string",
-              "functionalCurrencyCode": "string",
-              "hostSystem": "string",
-              "inclusiveTaxIndicators": {
-                "authorityType": [
-                  "string"
-                ],
-                "fullyInclusive": "string"
-              },
-              "inputRecoveryType": "string",
-              "invoiceDate": "string",
-              "invoiceNumber": "string",
-              "isAuditUpdate": "string",
-              "isAudited": "string",
-              "isBusinessSupply": "string",
-              "isCredit": "string",
-              "isExempt": {
-                "all": "string",
-                "city": "string",
-                "country": "string",
-                "county": "string",
-                "district": "string",
-                "geocode": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "isNoTax": {
-                "all": "string",
-                "city": "string",
-                "country": "string",
-                "county": "string",
-                "district": "string",
-                "geocode": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "isReported": "string",
-              "isReversed": "string",
-              "isRounding": "string",
-              "isSimplification": "string",
-              "licenses": {
-                "customerLicense": [
-                  {
-                    "number": "string",
-                    "type": "string"
-                  }
-                ]
-              },
-              "line": [
-                {
-                  "accountingCode": "string",
-                  "allocationGroupName": "string",
-                  "allocationGroupOwner": "string",
-                  "allocationName": "string",
-                  "basisPercent": "string",
-                  "billTo": {
-                    "address1": "string",
-                    "address2": "string",
-                    "address3": "string",
-                    "addressValidationMode": "string",
-                    "city": "string",
-                    "companyBranchId": "string",
-                    "country": "string",
-                    "county": "string",
-                    "defaultAddressValidationMode": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "isBonded": "string",
-                    "locationTaxCategory": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "buyerPrimary": {
-                    "address1": "string",
-                    "address2": "string",
-                    "address3": "string",
-                    "addressValidationMode": "string",
-                    "city": "string",
-                    "companyBranchId": "string",
-                    "country": "string",
-                    "county": "string",
-                    "defaultAddressValidationMode": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "isBonded": "string",
-                    "locationTaxCategory": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "commodityCode": "string",
-                  "countryOfOrigin": "string",
-                  "customerGroupName": "string",
-                  "customerGroupOwner": "string",
-                  "customerName": "string",
-                  "customerNumber": "string",
-                  "deliveryTerms": "string",
-                  "deptOfConsign": "string",
-                  "description": "string",
-                  "discountAmount": "string",
-                  "endUse": [
-                    "string"
-                  ],
-                  "endUserName": "string",
-                  "establishments": {
-                    "buyerRole": {
-                      "billTo": "string",
-                      "buyerPrimary": "string",
-                      "middleman": "string",
-                      "orderAcceptance": "string",
-                      "orderOrigin": "string",
-                      "sellerPrimary": "string",
-                      "shipFrom": "string",
-                      "shipTo": "string",
-                      "supply": "string"
-                    },
-                    "middlemanRole": {
-                      "billTo": "string",
-                      "buyerPrimary": "string",
-                      "middleman": "string",
-                      "orderAcceptance": "string",
-                      "orderOrigin": "string",
-                      "sellerPrimary": "string",
-                      "shipFrom": "string",
-                      "shipTo": "string",
-                      "supply": "string"
-                    },
-                    "sellerRole": {
-                      "billTo": "string",
-                      "buyerPrimary": "string",
-                      "middleman": "string",
-                      "orderAcceptance": "string",
-                      "orderOrigin": "string",
-                      "sellerPrimary": "string",
-                      "shipFrom": "string",
-                      "shipTo": "string",
-                      "supply": "string"
-                    }
-                  },
-                  "exemptAmount": {
-                    "city": "string",
-                    "country": "string",
-                    "county": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "exemptCertificate": {
-                    "city": "string",
-                    "country": "string",
-                    "county": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "exemptReason": {
-                    "city": "string",
-                    "country": "string",
-                    "county": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "freightOnBoard": "string",
-                  "grossAmount": "string",
-                  "grossPlusTax": "string",
-                  "id": "string",
-                  "inclusiveTaxIndicators": {
-                    "authorityType": [
-                      "string"
-                    ],
-                    "fullyInclusive": "string"
-                  },
-                  "inputRecoveryAmount": "string",
-                  "inputRecoveryPercent": "string",
-                  "inputRecoveryType": "string",
-                  "invoiceDate": "string",
-                  "isAllocatable": "string",
-                  "isBusinessSupply": "string",
-                  "isCredit": "string",
-                  "isExempt": {
-                    "all": "string",
-                    "city": "string",
-                    "country": "string",
-                    "county": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "isManufacturing": "string",
-                  "isNoTax": {
-                    "all": "string",
-                    "city": "string",
-                    "country": "string",
-                    "county": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "isSimplification": "string",
-                  "itemValue": "string",
-                  "licenses": {
-                    "customerLicense": [
-                      {
-                        "number": "string",
-                        "type": "string"
-                      }
-                    ]
-                  },
-                  "lineNumber": 0,
-                  "location": {
-                    "billTo": "string",
-                    "middleman": "string",
-                    "orderAcceptance": "string",
-                    "orderOrigin": "string",
-                    "shipFrom": "string",
-                    "shipTo": "string",
-                    "supply": "string"
-                  },
-                  "locationSet": "string",
-                  "mass": 0,
-                  "middleman": {
-                    "address1": "string",
-                    "address2": "string",
-                    "address3": "string",
-                    "addressValidationMode": "string",
-                    "city": "string",
-                    "companyBranchId": "string",
-                    "country": "string",
-                    "county": "string",
-                    "defaultAddressValidationMode": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "isBonded": "string",
-                    "locationTaxCategory": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "modeOfTransport": "string",
-                  "movementDate": "string",
-                  "movementType": "string",
-                  "orderAcceptance": {
-                    "address1": "string",
-                    "address2": "string",
-                    "address3": "string",
-                    "addressValidationMode": "string",
-                    "city": "string",
-                    "companyBranchId": "string",
-                    "country": "string",
-                    "county": "string",
-                    "defaultAddressValidationMode": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "isBonded": "string",
-                    "locationTaxCategory": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "orderOrigin": {
-                    "address1": "string",
-                    "address2": "string",
-                    "address3": "string",
-                    "addressValidationMode": "string",
-                    "city": "string",
-                    "companyBranchId": "string",
-                    "country": "string",
-                    "county": "string",
-                    "defaultAddressValidationMode": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "isBonded": "string",
-                    "locationTaxCategory": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "originalDocumentId": "string",
-                  "originalDocumentItem": "string",
-                  "originalDocumentType": "string",
-                  "originalInvoiceDate": "string",
-                  "originalMovementDate": "string",
-                  "overrideAmount": {
-                    "city": "string",
-                    "country": "string",
-                    "county": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "overrideRate": {
-                    "city": "string",
-                    "country": "string",
-                    "county": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "partNumber": "string",
-                  "pointOfTitleTransfer": "string",
-                  "portOfEntry": "string",
-                  "portOfLoading": "string",
-                  "productCode": "string",
-                  "quantities": {
-                    "quantity": [
-                      {
-                        "amount": "string",
-                        "default": "string",
-                        "uom": "string"
-                      }
-                    ]
-                  },
-                  "quantity": 0,
-                  "regime": "string",
-                  "registrations": {
-                    "buyerRole": [
-                      "string"
-                    ],
-                    "middlemanRole": [
-                      "string"
-                    ],
-                    "sellerRole": [
-                      "string"
-                    ]
-                  },
-                  "relatedLineNumber": 0,
-                  "sellerPrimary": {
-                    "address1": "string",
-                    "address2": "string",
-                    "address3": "string",
-                    "addressValidationMode": "string",
-                    "city": "string",
-                    "companyBranchId": "string",
-                    "country": "string",
-                    "county": "string",
-                    "defaultAddressValidationMode": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "isBonded": "string",
-                    "locationTaxCategory": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "shipFrom": {
-                    "address1": "string",
-                    "address2": "string",
-                    "address3": "string",
-                    "addressValidationMode": "string",
-                    "city": "string",
-                    "companyBranchId": "string",
-                    "country": "string",
-                    "county": "string",
-                    "defaultAddressValidationMode": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "isBonded": "string",
-                    "locationTaxCategory": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "shipTo": {
-                    "address1": "string",
-                    "address2": "string",
-                    "address3": "string",
-                    "addressValidationMode": "string",
-                    "city": "string",
-                    "companyBranchId": "string",
-                    "country": "string",
-                    "county": "string",
-                    "defaultAddressValidationMode": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "isBonded": "string",
-                    "locationTaxCategory": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "supplementaryUnit": "string",
-                  "supply": {
-                    "address1": "string",
-                    "address2": "string",
-                    "address3": "string",
-                    "addressValidationMode": "string",
-                    "city": "string",
-                    "companyBranchId": "string",
-                    "country": "string",
-                    "county": "string",
-                    "defaultAddressValidationMode": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "isBonded": "string",
-                    "locationTaxCategory": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "supplyExemptPercent": {
-                    "city": "string",
-                    "country": "string",
-                    "county": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "taxAmount": "string",
-                  "taxCode": "string",
-                  "taxDeterminationDate": "string",
-                  "taxExchangeRateDate": "string",
-                  "taxPointDate": "string",
-                  "taxTreatment": "string",
-                  "taxType": {
-                    "all": "string",
-                    "city": "string",
-                    "country": "string",
-                    "county": "string",
-                    "district": "string",
-                    "geocode": "string",
-                    "postcode": "string",
-                    "province": "string",
-                    "state": "string"
-                  },
-                  "titleTransferLocation": "string",
-                  "transactionType": "string",
-                  "uniqueLineNumber": "string",
-                  "unitOfMeasure": "string",
-                  "uom": "string",
-                  "userElement": [
-                    {
-                      "name": "string",
-                      "value": "string"
-                    }
-                  ],
-                  "vatGroupRegistration": "string",
-                  "vendorName": "string",
-                  "vendorNumber": "string",
-                  "vendorTax": "string"
-                }
-              ],
-              "location": {
-                "billTo": "string",
-                "middleman": "string",
-                "orderAcceptance": "string",
-                "orderOrigin": "string",
-                "shipFrom": "string",
-                "shipTo": "string",
-                "supply": "string"
-              },
-              "locationSet": "string",
-              "middleman": {
-                "address1": "string",
-                "address2": "string",
-                "address3": "string",
-                "addressValidationMode": "string",
-                "city": "string",
-                "companyBranchId": "string",
-                "country": "string",
-                "county": "string",
-                "defaultAddressValidationMode": "string",
-                "district": "string",
-                "geocode": "string",
-                "isBonded": "string",
-                "locationTaxCategory": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "modeOfTransport": "string",
-              "movementDate": "string",
-              "movementType": "string",
-              "natureOfTransactionCode": "string",
-              "orderAcceptance": {
-                "address1": "string",
-                "address2": "string",
-                "address3": "string",
-                "addressValidationMode": "string",
-                "city": "string",
-                "companyBranchId": "string",
-                "country": "string",
-                "county": "string",
-                "defaultAddressValidationMode": "string",
-                "district": "string",
-                "geocode": "string",
-                "isBonded": "string",
-                "locationTaxCategory": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "orderOrigin": {
-                "address1": "string",
-                "address2": "string",
-                "address3": "string",
-                "addressValidationMode": "string",
-                "city": "string",
-                "companyBranchId": "string",
-                "country": "string",
-                "county": "string",
-                "defaultAddressValidationMode": "string",
-                "district": "string",
-                "geocode": "string",
-                "isBonded": "string",
-                "locationTaxCategory": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "originalDocumentId": "string",
-              "originalDocumentItem": "string",
-              "originalDocumentType": "string",
-              "originalInvoiceDate": "string",
-              "originalInvoiceNumber": "string",
-              "originalMovementDate": "string",
-              "overrideAmount": {
-                "city": "string",
-                "country": "string",
-                "county": "string",
-                "district": "string",
-                "geocode": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "overrideRate": {
-                "city": "string",
-                "country": "string",
-                "county": "string",
-                "district": "string",
-                "geocode": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "pointOfTitleTransfer": "string",
-              "portOfEntry": "string",
-              "portOfLoading": "string",
-              "productMappingGroupName": "string",
-              "productMappingGroupOwner": "string",
-              "regime": "string",
-              "registrations": {
-                "buyerRole": [
-                  "string"
-                ],
-                "middlemanRole": [
-                  "string"
-                ],
-                "sellerRole": [
-                  "string"
-                ]
-              },
-              "sellerPrimary": {
-                "address1": "string",
-                "address2": "string",
-                "address3": "string",
-                "addressValidationMode": "string",
-                "city": "string",
-                "companyBranchId": "string",
-                "country": "string",
-                "county": "string",
-                "defaultAddressValidationMode": "string",
-                "district": "string",
-                "geocode": "string",
-                "isBonded": "string",
-                "locationTaxCategory": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "shipFrom": {
-                "address1": "string",
-                "address2": "string",
-                "address3": "string",
-                "addressValidationMode": "string",
-                "city": "string",
-                "companyBranchId": "string",
-                "country": "string",
-                "county": "string",
-                "defaultAddressValidationMode": "string",
-                "district": "string",
-                "geocode": "string",
-                "isBonded": "string",
-                "locationTaxCategory": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "shipTo": {
-                "address1": "string",
-                "address2": "string",
-                "address3": "string",
-                "addressValidationMode": "string",
-                "city": "string",
-                "companyBranchId": "string",
-                "country": "string",
-                "county": "string",
-                "defaultAddressValidationMode": "string",
-                "district": "string",
-                "geocode": "string",
-                "isBonded": "string",
-                "locationTaxCategory": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "statisticalProcedure": "string",
-              "supply": {
-                "address1": "string",
-                "address2": "string",
-                "address3": "string",
-                "addressValidationMode": "string",
-                "city": "string",
-                "companyBranchId": "string",
-                "country": "string",
-                "county": "string",
-                "defaultAddressValidationMode": "string",
-                "district": "string",
-                "geocode": "string",
-                "isBonded": "string",
-                "locationTaxCategory": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "supplyExemptPercent": {
-                "city": "string",
-                "country": "string",
-                "county": "string",
-                "district": "string",
-                "geocode": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "taxCode": "string",
-              "taxDeterminationDate": "string",
-              "taxExchangeRateDate": "string",
-              "taxPointDate": "string",
-              "taxTreatment": "string",
-              "taxType": {
-                "all": "string",
-                "city": "string",
-                "country": "string",
-                "county": "string",
-                "district": "string",
-                "geocode": "string",
-                "postcode": "string",
-                "province": "string",
-                "state": "string"
-              },
-              "titleTransferLocation": "string",
-              "transactionType": "string",
-              "uniqueInvoiceNumber": "string",
-              "userElement": [
-                {
-                  "name": "string",
-                  "value": "string"
-                }
-              ],
-              "vatGroupRegistration": "string",
-              "vendorName": "string",
-              "vendorNumber": "string",
-              "vendorTax": "string"
-            }
-          ],
-          "password": "string",
-          "scenarioId": 0,
-          "scenarioName": "string",
-          "username": "string",
-          "version": "G",
-          "xmlGroupName": "string",
-          "xmlGroupOwner": "string"
-        },
-        "invoiceDate": "string",
-        "invoiceNumber": "string",
-        "isAuditUpdate": "string",
-        "isBusinessSupply": "string",
-        "isCredit": "string",
-        "isReported": "string",
-        "isReversed": "string",
-        "line": [
-          {
-            "accountingCode": "string",
-            "allocationLine": [
-              {}
-            ],
-            "allocationName": "string",
-            "basisPercent": "string",
-            "billToBranchId": "string",
-            "commodityCode": "string",
-            "countryOfOrigin": "string",
-            "customerGroupName": "string",
-            "customerGroupOwner": "string",
-            "customerName": "string",
-            "customerNumber": "string",
-            "deliveryTerms": "string",
-            "deptOfConsign": "string",
-            "description": "string",
-            "discountAmount": "string",
-            "endUserName": "string",
-            "freightOnBoard": "string",
-            "grossAmount": "string",
-            "id": "string",
-            "inputRecoveryAmount": "string",
-            "inputRecoveryPercent": "string",
-            "invoiceDate": "string",
-            "isBusinessSupply": "string",
-            "isCredit": "string",
-            "itemValue": "string",
-            "lineNumber": 0,
-            "mass": 0,
-            "message": [
-              {
-                "category": "string",
-                "code": "string",
-                "location": "string",
-                "messageText": "string",
-                "severity": 0
-              }
-            ],
-            "middlemanBranchId": "string",
-            "middlemanMarkupAmount": 0,
-            "middlemanMarkupRate": 0,
-            "modeOfTransport": "string",
-            "movementDate": "string",
-            "originalDocumentId": "string",
-            "originalDocumentItem": "string",
-            "originalDocumentType": "string",
-            "originalInvoiceDate": "string",
-            "originalInvoiceNumber": "string",
-            "originalMovementDate": "string",
-            "partNumber": "string",
-            "pointOfTitleTransfer": "string",
-            "portOfEntry": "string",
-            "portOfLoading": "string",
-            "quantities": {
-              "quantity": [
-                {
-                  "amount": "string",
-                  "default": "string",
-                  "uom": "string"
-                }
-              ]
-            },
-            "regime": "string",
-            "relatedLineNumber": 0,
-            "shipFromBranchId": "string",
-            "shipFromCountry": "string",
-            "shipToBranchId": "string",
-            "shipToCountry": "string",
-            "supplementaryUnit": "string",
-            "supplyBranchId": "string",
-            "tax": [
-              {
-                "addressType": "string",
-                "adminZoneLevel": "string",
-                "authorityAttribute": [
-                  {
-                    "name": "string",
-                    "value": "string"
-                  }
-                ],
-                "authorityCategory": "string",
-                "authorityCurrencyCode": "string",
-                "authorityFips": "string",
-                "authorityName": "string",
-                "authorityOfficialName": "string",
-                "authorityType": "string",
-                "authorityTypeAlias": "string",
-                "authorityUuid": "string",
-                "basisPercent": "string",
-                "buyerRegistration": "string",
-                "calculationMethod": "string",
-                "comment": "string",
-                "currencyConversion": [
-                  {
-                    "conversionSteps": [
-                      {
-                        "conversionStep": 0,
-                        "exchangeRate": 0,
-                        "fromCurrencyCode": "string",
-                        "toCurrencyCode": "string"
-                      }
-                    ],
-                    "exchangeRateSource": "string",
-                    "taxExchangeRateDate": "string"
-                  }
-                ],
-                "effectiveZoneLevel": "string",
-                "erpTaxCode": "string",
-                "euTransaction": true,
-                "exemptAmount": {
-                  "authorityAmount": "string",
-                  "documentAmount": "string",
-                  "unroundedAuthorityAmount": "string",
-                  "unroundedDocumentAmount": "string"
-                },
-                "exemptCertificate": "string",
-                "exemptCertificateExpireDate": "string",
-                "exemptReason": "string",
-                "fee": [
-                  {
-                    "amount": 0,
-                    "currencyCode": "string",
-                    "unitOfMeasure": "string"
-                  }
-                ],
-                "fiscalRepAddress1": "string",
-                "fiscalRepAddress2": "string",
-                "fiscalRepContact": "string",
-                "fiscalRepName": "string",
-                "grossAmount": {
-                  "authorityAmount": "string",
-                  "documentAmount": "string",
-                  "unroundedAuthorityAmount": "string",
-                  "unroundedDocumentAmount": "string"
-                },
-                "inclusiveTax": "string",
-                "inputRecoveryAmount": "string",
-                "inputRecoveryPercent": "string",
-                "invoiceDescription": "string",
-                "isExempt": true,
-                "isIntrastatReported": "string",
-                "isNotax": true,
-                "isTriangulation": true,
-                "isVatReported": true,
-                "isViesReported": true,
-                "jurisdictionText": "string",
-                "licenses": {
-                  "license": [
-                    {
-                      "licenseCategory": "string",
-                      "licenseEndDate": "string",
-                      "licenseExternalIdentifier": "string",
-                      "licenseNumber": "string",
-                      "licenseTypeName": "string"
-                    }
-                  ]
-                },
-                "locationCode": "string",
-                "message": [
-                  {
-                    "category": "string",
-                    "code": "string",
-                    "location": "string",
-                    "messageText": "string",
-                    "severity": 0
-                  }
-                ],
-                "middlemanRegistration": "string",
-                "natureOfTax": "string",
-                "nonTaxableBasis": {
-                  "authorityAmount": "string",
-                  "documentAmount": "string",
-                  "unroundedAuthorityAmount": "string",
-                  "unroundedDocumentAmount": "string"
-                },
-                "overrideAmount": 0,
-                "overrideRate": 0,
-                "registrationAttribute1": "string",
-                "registrationAttribute10": "string",
-                "registrationAttribute11": "string",
-                "registrationAttribute12": "string",
-                "registrationAttribute13": "string",
-                "registrationAttribute14": "string",
-                "registrationAttribute15": "string",
-                "registrationAttribute16": "string",
-                "registrationAttribute17": "string",
-                "registrationAttribute18": "string",
-                "registrationAttribute19": "string",
-                "registrationAttribute2": "string",
-                "registrationAttribute20": "string",
-                "registrationAttribute21": "string",
-                "registrationAttribute22": "string",
-                "registrationAttribute23": "string",
-                "registrationAttribute24": "string",
-                "registrationAttribute25": "string",
-                "registrationAttribute26": "string",
-                "registrationAttribute27": "string",
-                "registrationAttribute28": "string",
-                "registrationAttribute29": "string",
-                "registrationAttribute3": "string",
-                "registrationAttribute30": "string",
-                "registrationAttribute31": "string",
-                "registrationAttribute32": "string",
-                "registrationAttribute33": "string",
-                "registrationAttribute34": "string",
-                "registrationAttribute35": "string",
-                "registrationAttribute36": "string",
-                "registrationAttribute37": "string",
-                "registrationAttribute38": "string",
-                "registrationAttribute39": "string",
-                "registrationAttribute4": "string",
-                "registrationAttribute40": "string",
-                "registrationAttribute41": "string",
-                "registrationAttribute42": "string",
-                "registrationAttribute43": "string",
-                "registrationAttribute44": "string",
-                "registrationAttribute45": "string",
-                "registrationAttribute46": "string",
-                "registrationAttribute47": "string",
-                "registrationAttribute48": "string",
-                "registrationAttribute49": "string",
-                "registrationAttribute5": "string",
-                "registrationAttribute50": "string",
-                "registrationAttribute6": "string",
-                "registrationAttribute7": "string",
-                "registrationAttribute8": "string",
-                "registrationAttribute9": "string",
-                "relatedAllocationLineNumber": 0,
-                "relatedLineNumber": 0,
-                "revisedGrossAmount": 0,
-                "ruleOrder": 0,
-                "ruleReportingCategory": "string",
-                "sellerRegistration": "string",
-                "supplyExemptPercent": 0,
-                "taxAmount": {
-                  "authorityAmount": "string",
-                  "documentAmount": "string",
-                  "unroundedAuthorityAmount": "string",
-                  "unroundedDocumentAmount": "string"
-                },
-                "taxDeterminationDate": "string",
-                "taxDirection": "string",
-                "taxPointDate": "string",
-                "taxRate": "string",
-                "taxRateCode": "string",
-                "taxTreatment": "string",
-                "taxType": "string",
-                "taxableBasis": {
-                  "authorityAmount": "string",
-                  "documentAmount": "string",
-                  "unroundedAuthorityAmount": "string",
-                  "unroundedDocumentAmount": "string"
-                },
-                "taxableCity": "string",
-                "taxableCountry": "string",
-                "taxableCountryName": "string",
-                "taxableCounty": "string",
-                "taxableDistrict": "string",
-                "taxableGeocode": "string",
-                "taxablePostcode": "string",
-                "taxableProvince": "string",
-                "taxableState": "string",
-                "uomConversion": {
-                  "factor": "string",
-                  "from": {
-                    "amount": "string",
-                    "default": "string",
-                    "uom": "string"
-                  },
-                  "operator": "string",
-                  "toRounded": {
-                    "amount": "string",
-                    "default": "string",
-                    "uom": "string"
-                  },
-                  "toUnrounded": {
-                    "amount": "string",
-                    "default": "string",
-                    "uom": "string"
-                  }
-                },
-                "vatGroupRegistration": "string",
-                "zoneLevel": "string",
-                "zoneName": "string"
-              }
-            ],
-            "taxCode": "string",
-            "taxSummary": {
-              "advisories": {
-                "advisory": [
-                  "string"
-                ]
-              },
-              "effectiveTaxRate": "string",
-              "exemptAmount": "string",
-              "nonTaxableBasis": "string",
-              "taxRate": "string",
-              "taxableBasis": "string"
-            },
-            "titleTransferLocation": "string",
-            "totalTaxAmount": "string",
-            "transactionType": "string",
-            "uniqueLineNumber": "string",
-            "unitOfMeasure": "string",
-            "userElement": [
-              {
-                "name": "string",
-                "value": "string"
-              }
-            ],
-            "vendorName": "string",
-            "vendorNumber": "string",
-            "vendorTax": "string"
-          }
-        ],
-        "message": [
-          {
-            "category": "string",
-            "code": "string",
-            "location": "string",
-            "messageText": "string",
-            "severity": 0
-          }
-        ],
-        "minAccountableUnit": "string",
-        "natureOfTransactionCode": "string",
-        "originalDocumentId": "string",
-        "originalDocumentItem": "string",
-        "originalDocumentType": "string",
-        "originalInvoiceDate": "string",
-        "originalInvoiceNumber": "string",
-        "originalMovementDate": "string",
-        "requestStatus": {
-          "error": [
-            {
-              "code": "string",
-              "description": "string",
-              "errorLocationPath": "string"
-            }
-          ],
-          "isPartialSuccess": true,
-          "isSuccess": true
-        },
-        "roundingPrecision": 0,
-        "roundingRule": "string",
-        "statisticalProcedure": "string",
-        "taxSummary": {
-          "advisories": {
-            "advisory": [
-              "string"
-            ]
-          },
-          "effectiveTaxRate": "string",
-          "exemptAmount": "string",
-          "nonTaxableBasis": "string",
-          "taxRate": "string",
-          "taxableBasis": "string"
-        },
-        "totalTaxAmount": "string",
-        "transactionDate": "string",
-        "uniqueInvoiceNumber": "string",
-        "userElement": [
-          {
-            "name": "string",
-            "value": "string"
-          }
-        ],
-        "vendorName": "string",
-        "vendorNumber": "string",
-        "vendorTax": "string"
-      }
-    ],
-    "requestStatus": {
-      "error": [
-        {
-          "code": "string",
-          "description": "string",
-          "errorLocationPath": "string"
-        }
-      ],
-      "isPartialSuccess": true,
-      "isSuccess": true
+var invoiceResponse = `{
+    "login": {
+        "userName": null,
+        "password": null,
+        "trustedId": null
     },
-    "scenarioName": "string",
-    "version": "G"
-  }
+    "accrualRequest": null,
+    "accrualResponse": null,
+    "accrualSyncRequest": null,
+    "accrualSyncResponse": null,
+    "assetMovementRequest": null,
+    "assetMovementResponse": null,
+    "buyerInputTaxRequest": null,
+    "buyerInputTaxResponse": null,
+    "deleteRequest": null,
+    "deleteResponse": null,
+    "distributeTaxProcurementRequest": null,
+    "distributeTaxProcurementResponse": null,
+    "distributeTaxRequest": null,
+    "distributeTaxResponse": null,
+    "inventoryRemovalRequest": null,
+    "inventoryRemovalResponse": null,
+    "invoiceRequest": null,
+    "invoiceResponse": {
+        "currency": null,
+        "originalCurrency": null,
+        "companyCodeCurrency": null,
+        "seller": {
+            "company": "Rakuten",
+            "division": "RM_EU",
+            "department": null,
+            "utilityProvider": null,
+            "dispatcher": null,
+            "physicalOrigin": {
+                "streetAddress1": null,
+                "streetAddress2": null,
+                "city": null,
+                "mainDivision": null,
+                "subDivision": null,
+                "postalCode": null,
+                "country": "GB",
+                "currencyConversion": null,
+                "taxAreaId": 808260000,
+                "latitude": null,
+                "longitude": null,
+                "locationCustomsStatus": null,
+                "locationCode": null,
+                "externalJurisdictionCode": null
+            },
+            "administrativeOrigin": null,
+            "taxRegistration": [],
+            "nexusIndicator": null,
+            "nexusReasonCode": null
+        },
+        "customer": {
+            "customerCode": {
+                "value": "",
+                "classCode": null,
+                "isBusinessIndicator": true
+            },
+            "destination": {
+                "streetAddress1": null,
+                "streetAddress2": null,
+                "city": null,
+                "mainDivision": null,
+                "subDivision": null,
+                "postalCode": null,
+                "country": "GB",
+                "currencyConversion": null,
+                "taxAreaId": 808260000,
+                "latitude": null,
+                "longitude": null,
+                "locationCustomsStatus": null,
+                "locationCode": null,
+                "externalJurisdictionCode": null
+            },
+            "administrativeDestination": null,
+            "exemptionCertificate": null,
+            "taxRegistration": [
+                {
+                    "taxRegistrationNumber": "GB",
+                    "nexusOverride": [],
+                    "physicalLocation": [],
+                    "impositionType": null,
+                    "isoCountryCode": "GB",
+                    "mainDivision": null,
+                    "hasPhysicalPresenceIndicator": true,
+                    "jurisdictionId": null
+                }
+            ],
+            "isTaxExempt": false,
+            "exemptionReasonCode": null
+        },
+        "taxOverride": null,
+        "impositionToProcess": [],
+        "jurisdictionOverride": [],
+        "situsOverride": null,
+        "discount": null,
+        "proratePercentage": null,
+        "subTotal": 100,
+        "total": 120,
+        "totalTax": 20,
+        "currencyConversionFactors": null,
+        "lineItem": [
+            {
+                "seller": null,
+                "customer": null,
+                "taxOverride": null,
+                "impositionToProcess": [],
+                "jurisdictionOverride": [],
+                "situsOverride": null,
+                "product": {
+                    "value": "",
+                    "productClass": "ASDE"
+                },
+                "lineType": null,
+                "commodityCode": null,
+                "quantity": {
+                    "value": 1,
+                    "unitOfMeasure": null
+                },
+                "weight": null,
+                "volume": null,
+                "supplementaryUnit": null,
+                "statisticalValue": null,
+                "freight": null,
+                "fairMarketValue": 100,
+                "unitPrice": 0,
+                "extendedPrice": 100,
+                "discount": null,
+                "amountBilledToDate": null,
+                "companyCodeCurrencyTaxableAmount": null,
+                "companyCodeCurrencyTaxAmount": null,
+                "taxes": [
+                    {
+                        "jurisdiction": {
+                            "value": "UNITED KINGDOM",
+                            "jurisdictionLevel": "COUNTRY",
+                            "jurisdictionId": 78295,
+                            "effectiveDate": null,
+                            "expirationDate": null,
+                            "externalJurisdictionCode": null
+                        },
+                        "accumulateAsJurisdiction": null,
+                        "calculatedTax": 20,
+                        "effectiveRate": 0.2,
+                        "taxApportionmentRate": null,
+                        "basisReductionPercentage": null,
+                        "exempt": null,
+                        "nonTaxable": null,
+                        "taxable": {
+                            "value": 100,
+                            "unitOfMeasure": null
+                        },
+                        "reportingBasis": null,
+                        "imposition": {
+                            "value": "VAT",
+                            "userDefined": null,
+                            "impositionId": 1
+                        },
+                        "impositionType": {
+                            "value": "VAT",
+                            "userDefined": null,
+                            "impositionTypeId": 19,
+                            "withholdingType": null
+                        },
+                        "accumulateAsImposition": null,
+                        "accumulateAsImpositionType": null,
+                        "taxRuleId": {
+                            "value": 339387,
+                            "userDefined": null,
+                            "salesTaxHolidayIndicator": null,
+                            "taxRuleType": null
+                        },
+                        "basisRuleId": null,
+                        "inclusionRuleId": null,
+                        "maxTaxRuleId": null,
+                        "recoverableRuleId": null,
+                        "postCalculationEvaluationRuleId": null,
+                        "creditRuleId": null,
+                        "basisApportionmentRuleId": null,
+                        "taxRateAdjustmentRuleId": null,
+                        "taxApportionmentRuleId": null,
+                        "accumulationRuleId": null,
+                        "telecomUnitConversionRuleId": null,
+                        "reportingBasisRuleId": null,
+                        "certificateNumber": null,
+                        "recoverableAmount": null,
+                        "recoverablePercent": null,
+                        "blockingRecoverablePercent": null,
+                        "partialExemptRecoverablePercent": null,
+                        "unrecoverableAmount": null,
+                        "filingCurrencyAmounts": null,
+                        "sellerRegistrationId": "GB 882.7552.85",
+                        "buyerRegistrationId": "GB",
+                        "ownerRegistrationId": null,
+                        "dispatcherRegistrationId": null,
+                        "recipientRegistrationId": null,
+                        "invoiceTextCode": [
+                            21
+                        ],
+                        "summaryInvoiceText": null,
+                        "invoiceTexts": null,
+                        "assistedParameters": null,
+                        "taxRuleCurrencyConversionFactors": null,
+                        "originalTax": null,
+                        "includedTax": null,
+                        "nominalRate": 0.2,
+                        "markUpRate": null,
+                        "accumulateAsLineType": null,
+                        "taxResult": "TAXABLE",
+                        "taxType": "VAT",
+                        "maxTaxIndicator": null,
+                        "situs": "DESTINATION",
+                        "notRegisteredIndicator": null,
+                        "inputOutputType": "OUTPUT",
+                        "taxCode": null,
+                        "vertexTaxCode": null,
+                        "reasonCode": null,
+                        "filingCategoryCode": null,
+                        "isService": null,
+                        "rateClassification": "Standard Rate",
+                        "taxCollectedFromParty": "BUYER",
+                        "taxStructure": "SINGLE_RATE"
+                    }
+                ],
+                "totalTax": 20,
+                "flexibleFields": null,
+                "returnsFields": null,
+                "assistedParameters": {
+                    "assistedParameter": [
+                        {
+                            "value": "GB",
+                            "paramName": "customer.taxRegistrationId",
+                            "phase": "PRE",
+                            "ruleName": "Set Customer Registration ID",
+                            "originalValue": ""
+                        }
+                    ]
+                },
+                "lineItem": [],
+				"lineItemId": "",
+                "lineItemNumber": 1,
+                "taxDate": null,
+                "isMulticomponent": null,
+                "locationCode": null,
+                "deliveryTerm": null,
+                "postingDate": null,
+                "costCenter": null,
+                "departmentCode": null,
+                "generalLedgerAccount": null,
+                "materialCode": null,
+                "projectNumber": null,
+                "usage": null,
+                "usageClass": null,
+                "vendorSKU": null,
+                "countryOfOriginISOCode": null,
+                "modeOfTransport": null,
+                "natureOfTransaction": null,
+                "intrastatCommodityCode": null,
+                "netMassKilograms": null,
+                "lineItemId": "",
+                "taxIncludedIndicator": null,
+                "transactionType": null,
+                "simplificationCode": null,
+                "titleTransfer": null,
+                "chainTransactionPhase": null,
+                "exportProcedure": null,
+                "materialOrigin": null
+            }
+        ],
+        "documentNumber": null,
+        "accumulationDocumentNumber": null,
+        "accumulationCustomerNumber": null,
+        "documentType": null,
+        "billingType": null,
+        "orderType": null,
+        "postingDate": null,
+        "locationCode": null,
+        "returnAssistedParametersIndicator": null,
+        "returnGeneratedLineItemsIndicator": null,
+        "deliveryTerm": null,
+        "documentDate": 1582761600000,
+        "transactionId": null,
+        "transactionType": "SALE",
+        "simplificationCode": null,
+        "roundAtLineLevel": null,
+        "paymentDate": null,
+        "documentSequenceId": null,
+        "taxPointDate": null
+    },
+    "invoiceVerificationRequest": null,
+    "invoiceVerificationResponse": null,
+    "purchaseOrderRequest": null,
+    "purchaseOrderResponse": null,
+    "quotationRequest": null,
+    "quotationResponse": null,
+    "reversalRequest": null,
+    "reversalResponse": null,
+    "rollbackRequest": null,
+    "rollbackResponse": null,
+    "transactionExistsRequest": null,
+    "transactionExistsResponse": null,
+    "findChangedTaxAreaIdsRequest": null,
+    "findChangedTaxAreaIdsResponse": null,
+    "isTaxAreaChangedRequest": null,
+    "isTaxAreaChangedResponse": null,
+    "taxAreaRequest": null,
+    "taxAreaResponse": null,
+    "findTaxAreasRequest": null,
+    "findTaxAreasResponse": null,
+    "versionRequest": null,
+    "versionResponse": null,
+    "applicationData": {
+        "sender": null,
+        "applicationProperty": [],
+        "messageLogging": null,
+        "logEntry": [],
+        "responseTimeMS": 54.9
+    },
+    "ersrequest": null,
+    "ersresponse": null,
+    "apinvoiceSyncRequest": null,
+    "apinvoiceSyncResponse": null,
+    "arbillingSyncRequest": null,
+    "arbillingSyncResponse": null
 }`
 
-func TestResponseParsing(t *testing.T) {
-	response := &TaxResponse{}
-	err := json.Unmarshal([]byte(responseBody), response)
-	if err != nil {
-		t.Errorf("Can't parse response body: %v", err)
-	}
-}
+var _ = Describe("Request Invoice API", func() {
+	Describe("Invoice", func() {
+		It("Invoice Unmarshal", func() {
+			response := &Response{}
+			err := json.Unmarshal([]byte(invoiceResponse), response)
+			Expect(err).Should(BeNil())
+		})
+
+		It("Invoice Marshal", func() {
+			request := Response{}
+			request.InvoiceResponse.Seller.Company = "Rakuten"
+			request.InvoiceResponse.Seller.Division = "RM_EU"
+			request.InvoiceResponse.Seller.PhysicalOrigin.Country = "GB"
+			request.InvoiceResponse.Seller.PhysicalOrigin.TaxAreaID = 808260000
+			request.InvoiceResponse.Seller.TaxRegistration = []interface{}{}
+
+			request.InvoiceResponse.Customer.CustomerCode.IsBusinessIndicator = true
+			request.InvoiceResponse.Customer.Destination.Country = "GB"
+			request.InvoiceResponse.Customer.Destination.TaxAreaID = 808260000
+
+			request.InvoiceResponse.Customer.TaxRegistration = []TaxRegistration{{
+				TaxRegistrationNumber:        "GB",
+				NexusOverride:                []interface{}{},
+				PhysicalLocation:             []interface{}{},
+				ImpositionType:               nil,
+				IsoCountryCode:               "GB",
+				MainDivision:                 nil,
+				HasPhysicalPresenceIndicator: true,
+				JurisdictionID:               nil,
+			}}
+			request.InvoiceResponse.LineItem = []LineItem{{
+				ImpositionToProcess:  []interface{}{},
+				JurisdictionOverride: []interface{}{},
+				LineItemNumber:       1,
+				TotalTax:             20,
+				Product:              Product{Value: "", ProductClass: "ASDE"},
+				Quantity: Quantity{
+					Value:         1,
+					UnitOfMeasure: nil,
+				},
+				LineItem:        []interface{}{},
+				FairMarketValue: 100,
+				ExtendedPrice:   100,
+				Taxes: []Taxes{{
+					Jurisdiction: Jurisdiction{
+						Value:             "UNITED KINGDOM",
+						JurisdictionLevel: "COUNTRY",
+						JurisdictionID:    78295,
+					},
+					CalculatedTax: 20,
+					EffectiveRate: 0.2,
+					Taxable: Taxable{
+						Value: 100,
+					},
+					Imposition: Imposition{
+						Value:        "VAT",
+						ImpositionID: 1,
+					},
+					ImpositionType: ImpositionType{
+						Value:            "VAT",
+						ImpositionTypeID: 19,
+					},
+					TaxRuleID:             TaxRuleID{Value: 339387},
+					SellerRegistrationID:  "GB 882.7552.85",
+					BuyerRegistrationID:   "GB",
+					Situs:                 "DESTINATION",
+					RateClassification:    "Standard Rate",
+					NominalRate:           0.2,
+					TaxCollectedFromParty: "BUYER",
+					TaxStructure:          "SINGLE_RATE",
+					InputOutputType:       "OUTPUT",
+					TaxType:               "VAT",
+					TaxResult:             "TAXABLE",
+					InvoiceTextCode:       []int{21},
+				}},
+				AssistedParameters: AssistedParameters{[]AssistedParameter{
+					{Value: "GB",
+						ParamName: "customer.taxRegistrationId",
+						Phase:     "PRE",
+						RuleName:  "Set Customer Registration ID"},
+				}},
+			}}
+
+			request.InvoiceResponse.ImpositionToProcess = []interface{}{}
+			request.InvoiceResponse.JurisdictionOverride = []interface{}{}
+			request.InvoiceResponse.SubTotal = 100
+			request.InvoiceResponse.Total = 120
+			request.InvoiceResponse.TotalTax = 20
+			request.InvoiceResponse.DocumentDate = 1582761600000
+			request.InvoiceResponse.TransactionType = "SALE"
+
+			request.ApplicationData.ResponseTimeMS = 54.9
+			request.ApplicationData.ApplicationProperty = []interface{}{}
+			request.ApplicationData.LogEntry = []interface{}{}
+
+			body, err := json.Marshal(request)
+
+			Expect(err).Should(BeNil())
+			Expect(string(body)).To(MatchJSON(invoiceResponse))
+		})
+	})
+})
