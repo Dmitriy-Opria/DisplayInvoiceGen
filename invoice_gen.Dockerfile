@@ -1,5 +1,5 @@
 # Build executable.
-# docker build --build-arg GITHUB_RAKOPS={your_token} --build-arg ARTIFACTORY_APIKEY={your artifactory key} -t invoice_gen -f invoice_gen.Dockerfile .
+# docker build --build-arg PROD=true --build-arg GITHUB_RAKOPS={your_token} --build-arg ARTIFACTORY_APIKEY={your artifactory key} -t invoice_gen -f invoice_gen.Dockerfile .
 # docker run -it -d -p 9065:9065 --name invoice_gen invoice_gen:latest
 # docker run -it -d -p 9065:9065 --name invoice_gen repo.rmgops.com/docker/display_invoice/invoice_gen:develop
 FROM golang:1.14 AS build-env
