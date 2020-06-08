@@ -15,6 +15,7 @@ import (
 	"github.rakops.com/BNP/DisplayInvoiceGen/queue"
 	"github.rakops.com/BNP/DisplayInvoiceGen/rabbit/consumer"
 	"github.rakops.com/BNP/DisplayInvoiceGen/rabbit/producer"
+	"github.rakops.com/BNP/DisplayInvoiceGen/salesforce"
 	"github.rakops.com/BNP/DisplayInvoiceGen/services"
 )
 
@@ -42,9 +43,11 @@ func main() {
 		},
 	}
 
+	salesForce := initSalesForce(cfg, httpClient)
 	externalService := services.NewExternalService(cfg, httpClient)
 
 	dependencies := &deps.Dependencies{
+		SalesForce:      salesForce,
 		Postgres:        pg,
 		ExternalService: externalService,
 		Consumer:        consumer,
@@ -115,4 +118,14 @@ func initProducer(cfg *config.Config) producer.RabbitProducer {
 	}
 	log.Info("RabbitMQ producer was successfully initialized")
 	return conn
+}
+
+func initSalesForce(cfg *config.Config, client *http.Client) salesforce.ISalesForceUploader {
+	salesForce := salesforce.NewSalesForce(cfg, client)
+	if err := salesForce.Auth(); err != nil {
+		log.Fatalf("Can't initialize salesforce: %v", err)
+		return nil
+	}
+	log.Info("SalesForce was successfully authenticated")
+	return salesForce
 }

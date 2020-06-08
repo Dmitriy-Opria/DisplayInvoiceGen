@@ -1,11 +1,14 @@
 package queue
 
 import (
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/streadway/amqp"
 	"github.rakops.com/BNP/DisplayInvoiceGen/deps"
 	"github.rakops.com/BNP/DisplayInvoiceGen/log"
+	"github.rakops.com/BNP/DisplayInvoiceGen/rabbit/consumer"
 	"github.rakops.com/BNP/DisplayInvoiceGen/utils"
 )
 
@@ -21,107 +24,137 @@ func NewQueueHandler(deps *deps.Dependencies) Handler {
 }
 
 type Wrapper struct {
-	deps *deps.Dependencies
+	deps                 *deps.Dependencies
+	salesForceTimeouts   map[string]time.Time
+	salesForceTimeoutsMx sync.Mutex
 }
 
 func (q *Wrapper) Run() error {
 
-	msg, err := q.deps.Consumer.GetChannel()
-
+	invoiceChannel, err := q.deps.Consumer.GetChannel(consumer.Invoice)
 	if err != nil {
 		return errors.Wrap(err, "can't get channel")
 	}
 
-	go func() {
-		for d := range msg {
-			log.Warnf(
-				"got %dB delivery: [%v] %q",
-				len(d.Body),
-				d.DeliveryTag,
-				d.Body,
-			)
+	salesForceChannel, err := q.deps.Consumer.GetChannel(consumer.SalesForce)
+	if err != nil {
+		return errors.Wrap(err, "can't get channel")
+	}
 
-			if err := q.CreateInvoice(string(d.Body)); err != nil {
-				log.Warnf("can't create invoice: %v", err)
-				continue
-			}
+	// Generate invoices worker
+	go q.InvoiceProcessor(invoiceChannel)
 
-			q.deps.Producer.Send(string(d.Body))
-		}
-		log.Warnf("handle: deliveries channel closed")
-		q.deps.Consumer.Done(nil)
-	}()
-
+	// Push push approved invoice to salesforce worker
+	go q.SalesForceProcessor(salesForceChannel)
 	return nil
 }
 
-func (q *Wrapper) CreateInvoice(billingDate string) error {
+func (q *Wrapper) InvoiceProcessor(channel <-chan amqp.Delivery) {
 
-	chargedList, err := q.deps.Postgres.GetNotProcessedChargedList(billingDate)
-	if err != nil {
-		return errors.Wrap(err, "can't get charged list")
-	}
+	for d := range channel {
+		log.Warnf(
+			"got invoice %dB delivery: [%v] %q",
+			len(d.Body),
+			d.DeliveryTag,
+			d.Body,
+		)
 
-	if len(chargedList) > 0 {
-
-		groupedList := utils.GroupCharges(chargedList)
-
-		billingTime, err := time.Parse("2006-01-02", billingDate)
-		if err != nil {
-			return errors.Wrap(err, "can't parse billing time date")
+		if err := q.CreateInvoice(string(d.Body)); err == AlreadyExist {
+			d.Ack(false)
+			log.Warnf("ack existed invoice: %v", err)
+			continue
+		} else if err != nil {
+			log.Warnf("can't create invoice: %v", err)
+			d.Nack(false, false)
+			continue
 		}
 
-		for _, list := range groupedList {
+		q.deps.Producer.Send(string(d.Body))
+		d.Ack(false)
+		log.Info("invoice ack")
+	}
+	log.Warnf("handle: deliveries channel closed")
+	q.deps.Consumer.Done(nil)
+}
 
-			id, err := q.deps.Postgres.GetInvoiceSequence()
+func (q *Wrapper) SalesForceProcessor(channel <-chan amqp.Delivery) {
+
+	for d := range channel {
+		log.Warnf(
+			"got salesforce %dB delivery: [%v] %q",
+			len(d.Body),
+			d.DeliveryTag,
+			d.Body,
+		)
+
+		func() {
+			str := time.Now()
+			defer func() {
+				log.Infof("ticker time processing: %v seconds", time.Since(str).Seconds()*1000)
+			}()
+			// process msg for 5 hours, if it still not approved
+			if q.TimedOut(string(d.Body)) {
+				log.Infof("salesforce sending timed out, billing date: %v", string(d.Body))
+				d.Ack(false)
+				return
+			}
+
+			invoicesApproved, err := q.deps.Postgres.GetInvoices(string(d.Body), true)
 			if err != nil {
-				return errors.Wrap(err, "can't get invoice sequence")
+				log.Warnf("can't select approved invoices: %v", err)
+				d.Nack(false, false)
+				return
 			}
-			taxResponse, err := q.deps.ExternalService.GetTaxResponse(list)
-			if err != nil {
-				log.WithFields(log.Fields{
-					"invoiceNumber":  id,
-					"billingSetting": list[0].BillingSettings,
-					"billingDate":    billingDate,
-				}).Warnf("error_calling, can't get tax response: %v", err)
+			if len(invoicesApproved) > 0 {
+				invoiceLineItems, err := q.deps.Postgres.GetInvoicesLineItems(string(d.Body), true)
+				if err != nil {
+					log.Warnf("can't select approved invoices line items: %v", err)
+					d.Nack(false, false)
+					return
+				}
+				err = q.deps.SalesForce.PushToSalesForce(utils.ConvertInvoice(invoicesApproved), utils.ConvertInvoiceLineItems(invoiceLineItems))
+				if err != nil {
+					log.Warnf("can't publish invoices to salesforce: %v", err)
+					d.Nack(false, false)
+					return
+				}
+				err = q.deps.Postgres.MarkInvoiceAsPublished([]int64{})
+				if err != nil {
+					log.Warnf("can't mark invoices as published: %v", err)
+					d.Nack(false, false)
+					return
+				}
+				log.Infof("processed invoices: %v", len(invoicesApproved))
+				log.Infof("processed invoice line items: %v", len(invoiceLineItems))
+				log.Info("salesforce ack")
+				d.Ack(false)
+			} else {
+				log.Info("retry salesforce processing")
+				time.Sleep(time.Duration(q.deps.Config.SalesForce.TickerPeriod) * time.Second)
+				d.Reject(true)
 			}
+		}()
+	}
+	log.Warnf("handle: deliveries channel closed")
+	q.deps.Consumer.Done(nil)
+}
 
-			switch err {
-			case nil:
-				err := q.deps.Postgres.AddInvoice(utils.CombineInvoice(id, taxResponse, billingTime, list))
-				if err != nil {
-					return errors.Wrap(err, "unable to insert invoice")
-				}
+func (q *Wrapper) TimedOut(billingDate string) bool {
+	q.salesForceTimeoutsMx.Lock()
+	defer q.salesForceTimeoutsMx.Unlock()
 
-				err = q.deps.Postgres.AddInvoiceLineItem(utils.CombineInvoiceLineItem(id, taxResponse))
-				if err != nil {
-					return errors.Wrap(err, "unable to insert invoice line item")
-				}
-			default:
-				taxRate, err := q.deps.Postgres.GetLastMonthTaxRate(list[0].BillingSettings, list[0].RakutenCountry, list[0].BillingCountryCode, billingTime)
-				if err != nil {
-					log.WithFields(log.Fields{
-						"invoiceNumber":  id,
-						"billingSetting": list[0].BillingSettings,
-						"billingDate":    billingDate,
-					}).Warnf("error_finding during finding previous taxrate: %v", err)
-				}
+	if q.salesForceTimeouts == nil {
+		q.salesForceTimeouts = map[string]time.Time{}
+	}
 
-				err = q.deps.Postgres.AddInvoice(utils.CombineCalculatedInvoice(id, taxRate, billingTime, list))
-				if err != nil {
-					return errors.Wrap(err, "unable to insert invoice")
-				}
-
-				err = q.deps.Postgres.AddInvoiceLineItem(utils.CombineCalculatedInvoiceLineItem(id, taxRate, list))
-				if err != nil {
-					return errors.Wrap(err, "unable to insert invoice line item")
-				}
-			}
-
-			log.Printf("inserted id: %v", id)
+	if tm, ok := q.salesForceTimeouts[billingDate]; ok {
+		// if trying to process msg is over 5 hours
+		if time.Now().After(tm.Add(time.Duration(q.deps.Config.SalesForce.ValidationPeriod) * time.Minute)) {
+			return true
 		}
 	} else {
-		return errors.New("invoice already exist")
+		q.salesForceTimeouts[billingDate] = time.Now()
+		return false
 	}
-	return nil
+	return false
 }

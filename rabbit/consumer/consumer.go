@@ -9,17 +9,24 @@ import (
 type RabbitConsumer interface {
 	Connect() error
 	Shutdown() error
-	GetChannel() (<-chan amqp.Delivery, error)
+	GetChannel(to Source) (<-chan amqp.Delivery, error)
 	Done(err error)
 }
 
 func NewConsumer(conf *config.Config) RabbitConsumer {
 	rabbit := RabbitWrapper{}
 	rabbit.conf = conf
-	rabbit.consumerName = conf.Rabbit.ConsumerExchangeName
+	rabbit.consumerName = conf.Rabbit.ExchangeName
 	rabbit.done = make(chan error)
 	return &rabbit
 }
+
+type Source int64
+
+const (
+	Invoice    = 1
+	SalesForce = 2
+)
 
 type RabbitWrapper struct {
 	Connection   *amqp.Connection
@@ -45,7 +52,7 @@ func (r *RabbitWrapper) Connect() error {
 	return errors.Wrap(err, "can't connect to rabbitMQ")
 }
 
-func (r *RabbitWrapper) GetChannel() (<-chan amqp.Delivery, error) {
+func (r *RabbitWrapper) GetChannel(from Source) (<-chan amqp.Delivery, error) {
 	ch, err := r.Connection.Channel()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to open a channel")
@@ -53,22 +60,17 @@ func (r *RabbitWrapper) GetChannel() (<-chan amqp.Delivery, error) {
 
 	r.Channel = ch
 
-	err = ch.ExchangeDeclare(
-		r.conf.Rabbit.ConsumerExchangeName, // name
-		"topic",                            // type
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
+	queueName := ""
 
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to setup exchange for consuming")
+	switch from {
+	case Invoice:
+		queueName = r.conf.Rabbit.ConsumerInvoiceQueueName
+	case SalesForce:
+		queueName = r.conf.Rabbit.ConsumerSFQueueName
 	}
 
-	q, err := ch.QueueDeclare(
-		r.conf.Rabbit.ConsumerQueueName, // name
+	_, err = ch.QueueDeclare(
+		queueName, // name
 		true,
 		false,
 		false,
@@ -80,20 +82,10 @@ func (r *RabbitWrapper) GetChannel() (<-chan amqp.Delivery, error) {
 		return nil, errors.Wrap(err, "Failed to declare a queue for consuming")
 	}
 
-	err = ch.QueueBind(
-		q.Name, // name
-		r.conf.Rabbit.ConsumerRouteKey,
-		r.conf.Rabbit.ConsumerExchangeName,
-		false,
-		nil,
-	)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to bind a queue for consuming")
-	}
 	msgs, err := ch.Consume(
-		r.conf.Rabbit.ConsumerQueueName, // queue
+		queueName, // queue
 		r.consumerName,
-		true,
+		false,
 		false,
 		false,
 		false,
