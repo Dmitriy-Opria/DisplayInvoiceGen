@@ -17,9 +17,24 @@ PG_PASS: pass
 PG_NAME: gbs
 PG_DEBUG: false
 
+#PABBIT_MQ QUEUE
+RABBIT_HOST: 127.0.0.43
+RABBIT_PORT: 5672
+RABBIT_USER: admin
+RABBIT_PASS: pass
+RABBIT_VHOST: Vhost
+
+RABBIT_CONSUMER_EXCHANGE_NAME: exchange.display.invoice
+RABBIT_CONSUMER_QUEUE_NAME: queue.display.invoice.init
+RABBIT_CONSUMER_ROUTE_KEY: queue.display.invoice.routeKey
+
+RABBIT_PRODUCER_QUEUE_NAME: queue.display.pdf
+RABBIT_PRODUCER_ROUTE_KEY: queue.display.pdf.routeKey
+
 #EXTERNAL SERVICE
 API_ADDRESS: https://sloth-qa.private.linksynergy.com
 API_AUTHORIZATION_TOKEN: 'Bearer'
+ARI_RETRY: 3
 
 #REQUEST PARAMS
 COMPANY_NAME: 'Rakuten'
@@ -53,10 +68,23 @@ var _ = Describe("Invoice config test", func() {
 			Expect(conf.Postgres.User).To(Equal("gbs_flow"))
 			Expect(conf.Postgres.Pass).To(Equal("pass"))
 			Expect(conf.Postgres.Database).To(Equal("gbs"))
-			Expect(conf.Postgres.Debug).To(Equal(false))
+
+			Expect(conf.Rabbit.Host).To(Equal("127.0.0.43"))
+			Expect(conf.Rabbit.Port).To(Equal(5672))
+			Expect(conf.Rabbit.User).To(Equal("admin"))
+			Expect(conf.Rabbit.Pass).To(Equal("pass"))
+			Expect(conf.Rabbit.VHost).To(Equal("Vhost"))
+
+			Expect(conf.Rabbit.ConsumerExchangeName).To(Equal("exchange.display.invoice"))
+			Expect(conf.Rabbit.ConsumerQueueName).To(Equal("queue.display.invoice.init"))
+			Expect(conf.Rabbit.ConsumerRouteKey).To(Equal("queue.display.invoice.routeKey"))
+
+			Expect(conf.Rabbit.ProducerQueueName).To(Equal("queue.display.pdf"))
+			Expect(conf.Rabbit.ProducerRouteKey).To(Equal("queue.display.pdf.routeKey"))
 
 			Expect(conf.TaxCalculationService.AuthToken).To(Equal("Bearer"))
 			Expect(conf.TaxCalculationService.Address).To(Equal("https://sloth-qa.private.linksynergy.com"))
+			Expect(conf.TaxCalculationService.Retry).To(Equal(3))
 
 			Expect(conf.TaxCalculationParams.CompanyName).To(Equal("Rakuten"))
 			Expect(conf.TaxCalculationParams.TransactionType).To(Equal("SALE"))

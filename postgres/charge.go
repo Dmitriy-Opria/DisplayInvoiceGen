@@ -2,9 +2,10 @@ package postgres
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/go-pg/pg"
 	"github.rakops.com/BNP/DisplayInvoiceGen/log"
-	"time"
 )
 
 type Charge struct {
@@ -23,6 +24,7 @@ type Charge struct {
 	ChargeID                  int64    `json:"ChargeId" 				 sql:"charge_id"`
 }
 
+// NOT USED
 func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error) {
 	str := time.Now()
 	defer func() {
@@ -48,6 +50,44 @@ func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error
 			join sfdc."BillingSetting" b on p."GBS_Billing_Setting__c" = b."Id"
 			join sfdc."Company" comp on b."Company__c" = comp."Id"	
 			join sfdc."Account" a on b."Account__c" = a."Id"
+			order by p."GBS_Billing_Setting__c"`, billingDate)
+
+	_, err := p.client.Query(&chargers, query)
+
+	if err != nil {
+		log.Warnf("can't execute pg query: %s", err)
+		return nil, err
+	}
+
+	return chargers, nil
+}
+
+func (p *ConnectionWrapper) GetNotProcessedChargedList(billingDate string) ([]*Charge, error) {
+	str := time.Now()
+	defer func() {
+		log.Infof("postgres query: %v seconds", time.Since(str).Seconds()*1000)
+	}()
+	var chargers []*Charge
+	query := fmt.Sprintf(`SELECT  p."GBS_Billing_Setting__c",	
+				b."Billing_Name__c",
+				b."Account__c",
+				c.charge_amount,
+				c.charge_currency,
+				a."SAP_Customer_ID__c",
+				a."Payment_Terms_SAP__c",
+				--Customer VAT and RakutenCountry Code
+				a."Tax_Registration_Number__c",
+				a."BillingCountryCode",
+				--Seller VAT and RakutenCountry Code
+				comp."c2g__VATRegistrationNumber__c",
+				comp."c2g__Country__c",
+				c.charge_id
+			from public.charge c
+			join sfdc."Program" p on c.program_id = p."Id" and billing_date = '%s'
+			join sfdc."BillingSetting" b on p."GBS_Billing_Setting__c" = b."Id"
+			join sfdc."Company" comp on b."Company__c" = comp."Id"	
+			join sfdc."Account" a on b."Account__c" = a."Id"
+			where c.charge_id not in (select invoicelineitem.charge_id from invoicelineitem)
 			order by p."GBS_Billing_Setting__c"`, billingDate)
 
 	_, err := p.client.Query(&chargers, query)

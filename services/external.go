@@ -132,9 +132,19 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge) (*model.Res
 	req.Header.Add("Authorization", e.config.TaxCalculationService.AuthToken)
 	req.Header.Add("Content-Type", "application/json")
 
+	try := 0
+
+Request:
 	response, err := e.client.Do(req)
 	if response != nil && response.Body != nil {
 		defer response.Body.Close()
+	}
+
+	if (err != nil || (response != nil && response.StatusCode != http.StatusOK)) &&
+		try < e.config.TaxCalculationService.Retry {
+		try++
+		log.Warnf("get to retry count: %v", try)
+		goto Request
 	}
 
 	if err != nil {
@@ -146,8 +156,11 @@ func (e *ExternalService) GetTaxResponse(charges []*postgres.Charge) (*model.Res
 		return nil, errors.Wrap(err, "reading index body failed")
 	}
 
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New(fmt.Sprintf("invalid status code, expected 200, got: %v, cody %v", response.StatusCode, string(body)))
+	}
 	if response.StatusCode != 200 {
-		return nil, fmt.Errorf("index request failed with code %v and body: %v", response.StatusCode, string(body))
+		return nil, fmt.Errorf("index request failed with code %v", response.StatusCode)
 	}
 
 	result := &model.Response{}

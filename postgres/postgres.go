@@ -15,10 +15,11 @@ type IConnection interface {
 	AddInvoice(invoice *Invoice) error
 	AddInvoiceLineItem(invoiceLineItem []*InvoiceLineItem) error
 
-	CheckInvoiceExist(billingDate string) (bool, error)
-
 	GetInvoiceSequence() (int64, error)
+	GetLastMonthTaxRate(billingSettings, companyCountry, customerCountry string, billingTime time.Time) (float64, error)
+
 	GetChargedList(billingDate string) ([]*Charge, error)
+	GetNotProcessedChargedList(billingDate string) ([]*Charge, error)
 }
 
 type IConf interface {

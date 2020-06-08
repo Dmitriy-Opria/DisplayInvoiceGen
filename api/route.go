@@ -1,10 +1,11 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/InVisionApp/rye"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 func (a *Api) CreateRouter() http.Handler {

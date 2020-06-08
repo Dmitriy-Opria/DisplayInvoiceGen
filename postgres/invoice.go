@@ -1,9 +1,12 @@
 package postgres
 
 import (
+	"errors"
 	"fmt"
-	"github.rakops.com/BNP/DisplayInvoiceGen/log"
 	"time"
+
+	"github.com/jinzhu/now"
+	"github.rakops.com/BNP/DisplayInvoiceGen/log"
 )
 
 type Invoice struct {
@@ -25,6 +28,8 @@ type Invoice struct {
 	InvoicePostDate string     `json:"InvoicePostDate"        sql:"invoicepostdate"` // Invoice Run Date -- 10 MAR 2020
 	BillingDate     string     `json:"BillingDate"            sql:"billingdate"`     // InvoiceDueDate + 1 or Invoice Run Month -- 1 MAR 2020
 	PDFnumber       string     `json:"PDFnumber"              sql:"pdfnumber"`       // PDFnumber SIN002022
+	CompanyCountry  string     `json:"CompanyCountry"         sql:"companycountry"`  // GB/US/AU
+	CustomerCountry string     `json:"CustomerCountry"        sql:"customercountry"` // UK/USA/AU
 }
 
 func (p *ConnectionWrapper) AddInvoice(invoice *Invoice) error {
@@ -45,7 +50,9 @@ func (p *ConnectionWrapper) AddInvoice(invoice *Invoice) error {
 		Set("invoiceperiod = EXCLUDED.invoiceperiod").
 		Set("invoicepostdate = EXCLUDED.invoicepostdate").
 		Set("billingdate = EXCLUDED.billingdate").
-		Set("pdfnumber = EXCLUDED.pdfnumber").Insert()
+		Set("pdfnumber = EXCLUDED.pdfnumber").
+		Set("companycountry = EXCLUDED.companycountry").
+		Set("customercountry = EXCLUDED.customercountry").Insert()
 
 	if err != nil {
 		log.Warn("Can't add invoice: %v", err)
@@ -54,17 +61,35 @@ func (p *ConnectionWrapper) AddInvoice(invoice *Invoice) error {
 	return err
 }
 
-func (p *ConnectionWrapper) CheckInvoiceExist(billingDate string) (bool, error) {
+func (p *ConnectionWrapper) GetLastMonthTaxRate(billingSettings, companyCountry, customerCountry string, billingTime time.Time) (float64, error) {
 	var invoice []*Invoice
-	query := fmt.Sprintf(`SELECT  * from public.invoice where billingdate='%s'`, billingDate)
+
+	layout := "2006-01-02"
+
+	query := fmt.Sprintf(
+		`SELECT  * from public.invoice WHERE 
+					billingsetting  ='%s' AND 
+					companycountry  ='%s' AND 
+					customercountry ='%s' AND
+					billingdate    <='%s' AND 
+					billingdate    >='%s'
+				ORDER BY billingdate DESC`,
+
+		billingSettings,
+		companyCountry,
+		customerCountry,
+		now.New(billingTime).BeginningOfMonth().Format(layout),
+		now.New(now.New(billingTime).BeginningOfMonth().Add(-24*365*time.Hour)).BeginningOfMonth().Format(layout))
+
+	log.Warnf("get last month query: %v", query)
 	_, err := p.client.Query(&invoice, query)
 
 	if err != nil {
 		log.Warnf("can't execute pg query: %s", err)
-		return false, err
+		return 0, err
 	}
 	if len(invoice) > 0 {
-		return true, nil
+		return invoice[0].TaxRate, nil
 	}
-	return false, nil
+	return 0, errors.New("not found record for previous month")
 }
