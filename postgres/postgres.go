@@ -22,7 +22,6 @@ type IConnection interface {
 	GetInvoiceSequence() (int64, error)
 	GetLastMonthTaxRate(billingSettings, companyCountry, customerCountry string, billingTime time.Time) (float64, error)
 
-	GetChargedList(billingDate string) ([]*Charge, error)
 	GetNotProcessedChargedList(billingDate string) ([]*Charge, error)
 }
 
