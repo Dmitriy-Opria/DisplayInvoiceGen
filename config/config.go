@@ -221,9 +221,9 @@ func initConfig(body []byte) *Config {
 	c.SalesForce.UserName = vip.GetString("SALES_FORCE_USER_NAME")
 	c.SalesForce.Pass = vip.GetString("SALES_FORCE_PASSWORD")
 	c.SalesForce.SecurityToken = vip.GetString("SALES_FORCE_SECURITY_TOKEN")
-	c.SalesForce.RecordTypeId = vip.GetString("RECORD_TYPE_ID")
-	c.SalesForce.TickerPeriod = vip.GetInt64("TICKER_PERIOD_SEC")
-	c.SalesForce.ValidationPeriod = vip.GetInt64("VALIDATION_PERIOD_MIN")
+	c.SalesForce.RecordTypeId = vip.GetString("SALES_FORCE_RECORD_TYPE_ID")
+	c.SalesForce.TickerPeriod = vip.GetInt64("SALES_FORCE_TICKER_PERIOD_SEC")
+	c.SalesForce.ValidationPeriod = vip.GetInt64("SALES_FORCE_VALIDATION_PERIOD_MIN")
 
 	RegistrationAU := vip.GetStringSlice("AU_REGISTRATION")
 	RegistrationUS := vip.GetStringSlice("US_REGISTRATION")
