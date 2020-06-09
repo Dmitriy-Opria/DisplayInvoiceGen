@@ -62,6 +62,7 @@ func (q *Wrapper) CreateInvoice(billingDate string) error {
 						"billingSetting": list[0].BillingSettings,
 						"billingDate":    billingDate,
 					}).Warnf("error_finding during finding previous tax rate: %v", err)
+					return errors.Wrap(err,"can't find previous tax rate")
 				}
 
 				err = q.deps.Postgres.AddInvoice(utils.CombineCalculatedInvoice(id, taxRate, billingTime, list))

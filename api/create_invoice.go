@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/InVisionApp/rye"
@@ -40,6 +42,7 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 					"billingSetting": list[0].BillingSettings,
 					"billingDate":    billingDate,
 				}).Warnf("error_calling, can't get tax response: %v", err)
+				return BadRequestResponse(err, "can't get tax service response")
 			}
 
 			switch err {
@@ -61,12 +64,12 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 						"billingSetting": list[0].BillingSettings,
 						"billingDate":    billingDate,
 					}).Warnf("error during finding previous taxrate: %v", err)
+					return NotFoundResponse(err, "can't found last month tax rate")
 				}
 
 				err = a.Deps.Postgres.AddInvoice(utils.CombineCalculatedInvoice(id, taxRate, billingTime, list))
 				if err != nil {
 					return ServerErrorResponse(err, "unable to insert invoice")
-
 				}
 
 				err = a.Deps.Postgres.AddInvoiceLineItem(utils.CombineCalculatedInvoiceLineItem(id, taxRate, list))
@@ -75,6 +78,13 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 				}
 			}
 
+			jsonData, _ := json.Marshal(&map[string]string{
+				"Message": "Successfully created",
+				"Status":  "OK",
+				"ID":      strconv.Itoa(int(id)),
+			})
+
+			rye.WriteJSONResponse(w, http.StatusOK, jsonData)
 			log.Printf("inserted id: %v", id)
 		}
 	} else {

@@ -44,10 +44,6 @@ func (a *Api) Run() {
 	srv := &http.Server{
 		Addr:    a.Config.ListenAddress,
 		Handler: a.CreateRouter(),
-
-		// There are few endpoints (migration endpoints) which can take a lot of
-		// time to finish. We need to put the WriteTimout to some big number so we
-		// can handle even the largest conversions
 		WriteTimeout: 60 * time.Second,
 
 		ReadTimeout:    5 * time.Second,

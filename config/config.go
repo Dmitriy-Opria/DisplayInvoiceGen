@@ -2,10 +2,11 @@ package config
 
 import (
 	"bytes"
+	"io/ioutil"
+
 	v "github.com/go-ozzo/ozzo-validation"
 	"github.com/spf13/viper"
 	"github.rakops.com/BNP/DisplayInvoiceGen/log"
-	"io/ioutil"
 )
 
 // Config application config structure, use viper for config and .env file or global env
@@ -94,6 +95,7 @@ func (c Config) Validate() error {
 		v.Field(&c.Postgres),
 		v.Field(&c.TaxCalculationService),
 		v.Field(&c.SalesForce),
+		v.Field(&c.TaxCalculationParams),
 	)
 }
 
@@ -128,10 +130,28 @@ func (r RabbitConfig) Validate() error {
 }
 
 // Validate external service config structure
-func (p ExternalService) Validate() error {
-	return v.ValidateStruct(&p,
-		v.Field(&p.Address, v.Required),
-		v.Field(&p.Retry, v.Required),
+func (e ExternalService) Validate() error {
+	return v.ValidateStruct(&e,
+		v.Field(&e.Address, v.Required),
+		v.Field(&e.Retry, v.Required),
+	)
+}
+
+// Validate external params config structure
+func (e ExternalParams) Validate() error {
+	return v.ValidateStruct(&e,
+		v.Field(&e.CompanyName, v.Required),
+		v.Field(&e.RegistrationAU, v.Required),
+		v.Field(&e.RegistrationUS, v.Required),
+		v.Field(&e.RegistrationEU, v.Required),
+		v.Field(&e.RegistrationIsoAU, v.Required),
+		v.Field(&e.RegistrationIsoUS, v.Required),
+		v.Field(&e.RegistrationIsoEU, v.Required),
+		v.Field(&e.TaxIdUS, v.Required),
+		v.Field(&e.TaxIdAU, v.Required),
+		v.Field(&e.TaxIdEU, v.Required),
+		v.Field(&e.ProductClass, v.Required),
+		v.Field(&e.TransactionType, v.Required),
 	)
 }
 

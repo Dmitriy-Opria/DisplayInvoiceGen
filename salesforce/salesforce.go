@@ -213,7 +213,7 @@ func (s *SalesForce) PushToSalesForce(invoices []*Invoice, invoiceLineItems []*I
 	}
 
 	if err := s.waitForCompletion(invoiceJobID, invoiceBatchID); err != nil {
-		return err
+		return errors.Wrap(err, "failing during waiting")
 	}
 
 	result, err := s.GetResult(invoiceJobID, invoiceBatchID)
