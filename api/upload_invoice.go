@@ -30,7 +30,7 @@ func (a *Api) uploadInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 			return ServerErrorResponse(err, "can'push to salse force")
 		}
 
-		err = a.Deps.Postgres.MarkInvoiceAsPublished([]int64{})
+		err = a.Deps.Postgres.MarkInvoiceAsPublished(invoices)
 		if err != nil {
 			return ServerErrorResponse(err, "can't mark invoices as published")
 		}

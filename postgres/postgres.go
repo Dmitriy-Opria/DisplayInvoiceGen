@@ -14,7 +14,7 @@ type IConnection interface {
 
 	AddInvoice(invoice *Invoice) error
 	GetInvoices(billingDate string, approved bool) ([]*InvoiceUp, error)
-	MarkInvoiceAsPublished(invoiceNumbers []int64) error
+	MarkInvoiceAsPublished(invoices []*InvoiceUp) error
 
 	AddInvoiceLineItem(invoiceLineItem []*InvoiceLineItem) error
 	GetInvoicesLineItems(billingDate string, approved bool) ([]*InvoiceLineItemUP, error)

@@ -3,6 +3,8 @@ package postgres
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/now"
@@ -133,7 +135,9 @@ func (p *ConnectionWrapper) GetInvoices(billingDate string, approved bool) ([]*I
        JOIN invoicelineitem il ON il.invoicenumber = i.invoicenumber
        JOIN sfdc."BillingSetting" b ON i.billingsetting = b."Id"
        JOIN sfdc."Company" comp ON b."Company__c" = comp."Id"
-	WHERE %v i.isapproved and i.billingdate='%v'
+	WHERE %v i.isapproved 
+	AND i.isUploadedToSalesforce = false
+	AND i.billingdate='%v'
 	GROUP BY i.invoicenumber, comp."Name"`,
 		notSuffix,
 		billingDate)
@@ -148,6 +152,22 @@ func (p *ConnectionWrapper) GetInvoices(billingDate string, approved bool) ([]*I
 	return invoices, nil
 }
 
-func (p *ConnectionWrapper) MarkInvoiceAsPublished(invoiceNumbers []int64) error {
+func (p *ConnectionWrapper) MarkInvoiceAsPublished(invoices []*InvoiceUp) error {
+	invoiceNumbers := make([]string, 0, len(invoices))
+	for index := range invoices {
+		invoiceNumbers = append(invoiceNumbers, strconv.Itoa(int(invoices[index].InvoiceNumber)))
+	}
+	query := fmt.Sprintf(`
+		UPDATE public.invoice
+		SET isUploadedToSalesforce=true
+		WHERE invoicenumber in (%v)`, strings.Join(invoiceNumbers, ","))
+
+	log.Infof(query)
+	_, err := p.client.Exec(query)
+
+	if err != nil {
+		log.Warnf("can't execute pg query: %s", err)
+		return err
+	}
 	return nil
 }

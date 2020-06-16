@@ -118,7 +118,7 @@ func (q *Wrapper) SalesForceProcessor(channel <-chan amqp.Delivery) {
 					d.Nack(false, false)
 					return
 				}
-				err = q.deps.Postgres.MarkInvoiceAsPublished([]int64{})
+				err = q.deps.Postgres.MarkInvoiceAsPublished(invoicesApproved)
 				if err != nil {
 					log.Warnf("can't mark invoices as published: %v", err)
 					d.Nack(false, false)
