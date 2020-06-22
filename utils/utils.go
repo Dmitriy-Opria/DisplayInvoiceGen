@@ -188,7 +188,7 @@ func ConvertInvoice(invoices []*postgres.InvoiceUp) []*salesforce.Invoice {
 			Name:            invoices[index].PDFnumber,
 			InvoiceNumber:   invoices[index].InvoiceNumber,
 			BillingSettings: invoices[index].BillingSetting,
-			InvoiceAmount:   invoices[index].InvoiceAmount,
+			InvoiceAmount:   invoices[index].InvoiceAmount + invoices[index].TaxTotal,
 			TaxTotal:        invoices[index].TaxTotal,
 			Account:         invoices[index].AccountNumber,
 			SAPCustomerID:   invoices[index].SAPCustomerID,

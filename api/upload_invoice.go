@@ -18,7 +18,7 @@ func (a *Api) uploadInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 	if err != nil {
 		return ServerErrorResponse(err, "can't select approved invoices")
 	}
-	
+
 	if len(invoices) > 0 {
 		invoiceLineItems, err := a.Deps.Postgres.GetInvoicesLineItems(billingDate, true)
 		if err != nil {
