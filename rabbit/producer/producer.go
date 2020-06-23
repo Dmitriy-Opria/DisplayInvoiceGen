@@ -59,7 +59,7 @@ func (r *RabbitWrapper) Send(body string) error {
 
 	err = ch.ExchangeDeclare(
 		r.conf.Rabbit.ExchangeName, // name
-		"fanout",              // type
+		"fanout",                   // type
 		true,
 		false,
 		false,
@@ -138,7 +138,7 @@ func (r *RabbitWrapper) SendJSON(request interface{}) error {
 
 	err = ch.ExchangeDeclare(
 		r.conf.Rabbit.ExchangeName, // name
-		"fanout",              // type
+		"fanout",                   // type
 		true,
 		false,
 		false,

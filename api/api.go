@@ -42,8 +42,8 @@ func New(cfg *config.Config, version string, deps *deps.Dependencies) (*Api, err
 
 func (a *Api) Run() {
 	srv := &http.Server{
-		Addr:    a.Config.ListenAddress,
-		Handler: a.CreateRouter(),
+		Addr:         a.Config.ListenAddress,
+		Handler:      a.CreateRouter(),
 		WriteTimeout: 60 * time.Second,
 
 		ReadTimeout:    5 * time.Second,
