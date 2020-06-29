@@ -20,6 +20,8 @@ then curl -H X-JFrog-Art-Api:$ARTIFACTORY_APIKEY -o config.yaml -O "https://repo
 else curl -H X-JFrog-Art-Api:$ARTIFACTORY_APIKEY -o config.yaml -O "https://repo.rmgops.com:443/artifactory/vagrant-local/invoice_gen/invoice_gen.qa.yaml";\
 fi
 
+RUN cat config.yaml
+
 COPY go.mod .
 COPY go.sum .
 RUN go mod download
