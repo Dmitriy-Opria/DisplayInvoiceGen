@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/InVisionApp/rye"
@@ -17,10 +19,7 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 
 	chargedList, err := a.Deps.Postgres.GetNotProcessedChargedList(billingDate)
 	if err != nil {
-		return &rye.Response{
-			Err:        err,
-			StatusCode: http.StatusInternalServerError,
-		}
+		return ServerErrorResponse(err, "can't get charged list")
 	}
 
 	if len(chargedList) > 0 {
@@ -33,10 +32,7 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 
 			id, err := a.Deps.Postgres.GetInvoiceSequence()
 			if err != nil {
-				return &rye.Response{
-					Err:        err,
-					StatusCode: http.StatusInternalServerError,
-				}
+				return ServerErrorResponse(err, "can't get invoice sequence")
 			}
 
 			taxResponse, err := a.Deps.ExternalService.GetTaxResponse(list)
@@ -46,24 +42,19 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 					"billingSetting": list[0].BillingSettings,
 					"billingDate":    billingDate,
 				}).Warnf("error_calling, can't get tax response: %v", err)
+				return BadRequestResponse(err, "can't get tax service response")
 			}
 
 			switch err {
 			case nil:
 				err := a.Deps.Postgres.AddInvoice(utils.CombineInvoice(id, taxResponse, billingTime, list))
 				if err != nil {
-					return &rye.Response{
-						Err:        errors.Wrap(err, "unable to insert invoice"),
-						StatusCode: http.StatusInternalServerError,
-					}
+					return ServerErrorResponse(err, "unable to insert invoice")
 				}
 
 				err = a.Deps.Postgres.AddInvoiceLineItem(utils.CombineInvoiceLineItem(id, taxResponse))
 				if err != nil {
-					return &rye.Response{
-						Err:        errors.Wrap(err, "unable to insert invoice line item"),
-						StatusCode: http.StatusInternalServerError,
-					}
+					return ServerErrorResponse(err, "unable to insert invoice line item")
 				}
 			default:
 				taxRate, err := a.Deps.Postgres.GetLastMonthTaxRate(list[0].BillingSettings, list[0].RakutenCountry, list[0].BillingCountryCode, billingTime)
@@ -73,32 +64,31 @@ func (a *Api) createInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 						"billingSetting": list[0].BillingSettings,
 						"billingDate":    billingDate,
 					}).Warnf("error during finding previous taxrate: %v", err)
+					return NotFoundResponse(err, "can't found last month tax rate")
 				}
 
 				err = a.Deps.Postgres.AddInvoice(utils.CombineCalculatedInvoice(id, taxRate, billingTime, list))
 				if err != nil {
-					return &rye.Response{
-						Err:        errors.Wrap(err, "unable to insert invoice"),
-						StatusCode: http.StatusInternalServerError,
-					}
+					return ServerErrorResponse(err, "unable to insert invoice")
 				}
 
 				err = a.Deps.Postgres.AddInvoiceLineItem(utils.CombineCalculatedInvoiceLineItem(id, taxRate, list))
 				if err != nil {
-					return &rye.Response{
-						Err:        errors.Wrap(err, "unable to insert invoice line item"),
-						StatusCode: http.StatusInternalServerError,
-					}
+					return ServerErrorResponse(err, "unable to insert invoice line item")
 				}
 			}
 
+			jsonData, _ := json.Marshal(&map[string]string{
+				"Message": "Successfully created",
+				"Status":  "OK",
+				"ID":      strconv.Itoa(int(id)),
+			})
+
+			rye.WriteJSONResponse(w, http.StatusOK, jsonData)
 			log.Printf("inserted id: %v", id)
 		}
 	} else {
-		return &rye.Response{
-			Err:        errors.New("invoice already exist"),
-			StatusCode: http.StatusBadRequest,
-		}
+		return BadRequestResponse(errors.New("invoice already exist"), "")
 	}
 	return nil
 }

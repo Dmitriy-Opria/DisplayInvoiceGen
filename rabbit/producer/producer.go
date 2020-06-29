@@ -58,8 +58,8 @@ func (r *RabbitWrapper) Send(body string) error {
 	defer ch.Close()
 
 	err = ch.ExchangeDeclare(
-		r.conf.Rabbit.ConsumerExchangeName, // name
-		"topic",                            // type
+		r.conf.Rabbit.ExchangeName, // name
+		"fanout",                   // type
 		true,
 		false,
 		false,
@@ -71,7 +71,7 @@ func (r *RabbitWrapper) Send(body string) error {
 		return errors.Wrap(err, "Failed to setup exchange for publishing")
 	}
 	q, err := ch.QueueDeclare(
-		r.conf.Rabbit.ProducerQueueName, // name
+		r.conf.Rabbit.ProducerPDFQueueName, // name
 		true,
 		false,
 		false,
@@ -84,8 +84,31 @@ func (r *RabbitWrapper) Send(body string) error {
 
 	err = ch.QueueBind(
 		q.Name, // name
-		r.conf.Rabbit.ProducerRouteKey,
-		r.conf.Rabbit.ConsumerExchangeName,
+		r.conf.Rabbit.ProducerPDFRouteKey,
+		r.conf.Rabbit.ExchangeName,
+		false,
+		nil,
+	)
+	if err != nil {
+		return errors.Wrap(err, "Failed to bind a queue for publishing")
+	}
+
+	q, err = ch.QueueDeclare(
+		r.conf.Rabbit.ProducerSFQueueName, // name
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return errors.Wrap(err, "Failed to get a queue for publishing")
+	}
+
+	err = ch.QueueBind(
+		q.Name, // name
+		r.conf.Rabbit.ProducerSFRouteKey,
+		r.conf.Rabbit.ExchangeName,
 		false,
 		nil,
 	)
@@ -94,8 +117,8 @@ func (r *RabbitWrapper) Send(body string) error {
 	}
 
 	err = ch.Publish(
-		r.conf.Rabbit.ConsumerExchangeName,
-		r.conf.Rabbit.ProducerRouteKey,
+		r.conf.Rabbit.ExchangeName,
+		"",
 		false,
 		false,
 		amqp.Publishing{
@@ -114,8 +137,8 @@ func (r *RabbitWrapper) SendJSON(request interface{}) error {
 	defer ch.Close()
 
 	err = ch.ExchangeDeclare(
-		r.conf.Rabbit.ConsumerExchangeName, // name
-		"topic",                            // type
+		r.conf.Rabbit.ExchangeName, // name
+		"fanout",                   // type
 		true,
 		false,
 		false,
@@ -127,7 +150,7 @@ func (r *RabbitWrapper) SendJSON(request interface{}) error {
 		return errors.Wrap(err, "Failed to setup exchange for publishing")
 	}
 	q, err := ch.QueueDeclare(
-		r.conf.Rabbit.ProducerQueueName, // name
+		r.conf.Rabbit.ProducerPDFQueueName, // name
 		true,
 		false,
 		false,
@@ -140,8 +163,31 @@ func (r *RabbitWrapper) SendJSON(request interface{}) error {
 
 	err = ch.QueueBind(
 		q.Name, // name
-		r.conf.Rabbit.ProducerRouteKey,
-		r.conf.Rabbit.ConsumerExchangeName,
+		r.conf.Rabbit.ProducerPDFRouteKey,
+		r.conf.Rabbit.ExchangeName,
+		false,
+		nil,
+	)
+	if err != nil {
+		return errors.Wrap(err, "Failed to bind a queue for publishing")
+	}
+
+	q, err = ch.QueueDeclare(
+		r.conf.Rabbit.ProducerSFQueueName, // name
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return errors.Wrap(err, "Failed to get a queue for publishing")
+	}
+
+	err = ch.QueueBind(
+		q.Name, // name
+		r.conf.Rabbit.ProducerSFRouteKey,
+		r.conf.Rabbit.ExchangeName,
 		false,
 		nil,
 	)
@@ -155,8 +201,8 @@ func (r *RabbitWrapper) SendJSON(request interface{}) error {
 	}
 
 	err = ch.Publish(
-		r.conf.Rabbit.ConsumerExchangeName,
-		r.conf.Rabbit.ProducerRouteKey,
+		r.conf.Rabbit.ExchangeName,
+		"",
 		false,
 		false,
 		amqp.Publishing{

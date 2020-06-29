@@ -3,6 +3,8 @@ package postgres
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/now"
@@ -30,6 +32,15 @@ type Invoice struct {
 	PDFnumber       string     `json:"PDFnumber"              sql:"pdfnumber"`       // PDFnumber SIN002022
 	CompanyCountry  string     `json:"CompanyCountry"         sql:"companycountry"`  // GB/US/AU
 	CustomerCountry string     `json:"CustomerCountry"        sql:"customercountry"` // UK/USA/AU
+}
+
+type InvoiceUp struct {
+	Invoice
+
+	TaxTotal    float64 `json:"TaxTotal"               sql:"taxtotal"`
+	IsApproved  bool    `json:"IsApproved"             sql:"isapproved"` // true/false
+	PONumber    string  `json:"PoNumber"              sql:"po_number"`   // true/false
+	CompanyName string  `json:"CompanyName"            sql:"name"`       // Rakuten Marketing LLC
 }
 
 func (p *ConnectionWrapper) AddInvoice(invoice *Invoice) error {
@@ -92,4 +103,71 @@ func (p *ConnectionWrapper) GetLastMonthTaxRate(billingSettings, companyCountry,
 		return invoice[0].TaxRate, nil
 	}
 	return 0, errors.New("not found record for previous month")
+}
+
+func (p *ConnectionWrapper) GetInvoices(billingDate string, approved bool) ([]*InvoiceUp, error) {
+	str := time.Now()
+	defer func() {
+		log.Infof("GetApprovedInvoices query: %v seconds", time.Since(str).Seconds()*1000)
+	}()
+	var invoices []*InvoiceUp
+	var notSuffix string
+
+	if !approved {
+		notSuffix = "NOT"
+	}
+	query := fmt.Sprintf(`SELECT i.pdfnumber,
+		i.invoicenumber,
+		i.billingsetting,
+		i.invoiceamount,
+		SUM(il.lineitemtaxamount) AS taxtotal,
+		i.taxrate,
+		i.accountnumber,
+		i.sapcustomerid,
+		i.invoicecurrency,
+		i.billingdate,
+		i.invoiceduedate,
+		i.companycountry,
+		i.isapproved,
+		(SELECT po_number from charge WHERE charge_id IN (SELECT charge_id FROM invoicelineitem WHERE invoicenumber = i.invoicenumber) AND po_number NOTNULL LIMIT 1) AS po_number,
+		comp."Name" as name
+	FROM public.invoice i
+       JOIN invoicelineitem il ON il.invoicenumber = i.invoicenumber
+       JOIN sfdc."BillingSetting" b ON i.billingsetting = b."Id"
+       JOIN sfdc."Company" comp ON b."Company__c" = comp."Id"
+	WHERE %v i.isapproved 
+	AND i.isUploadedToSalesforce = false
+	AND i.billingdate='%v'
+	GROUP BY i.invoicenumber, comp."Name"`,
+		notSuffix,
+		billingDate)
+
+	_, err := p.client.Query(&invoices, query)
+
+	if err != nil {
+		log.Warnf("can't execute pg query: %s", err)
+		return nil, err
+	}
+
+	return invoices, nil
+}
+
+func (p *ConnectionWrapper) MarkInvoiceAsPublished(invoices []*InvoiceUp) error {
+	invoiceNumbers := make([]string, 0, len(invoices))
+	for index := range invoices {
+		invoiceNumbers = append(invoiceNumbers, strconv.Itoa(int(invoices[index].InvoiceNumber)))
+	}
+	query := fmt.Sprintf(`
+		UPDATE public.invoice
+		SET isUploadedToSalesforce=true
+		WHERE invoicenumber in (%v)`, strings.Join(invoiceNumbers, ","))
+
+	log.Infof(query)
+	_, err := p.client.Exec(query)
+
+	if err != nil {
+		log.Warnf("can't execute pg query: %s", err)
+		return err
+	}
+	return nil
 }
