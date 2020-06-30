@@ -51,9 +51,9 @@ func NewSalesForce(config *config.Config, client *http.Client) ISalesForceUpload
 func (s *SalesForce) Auth() error {
 
 	env := "sandbox"
-	if s.config.Production {
-		env = environment
-	}
+	//if s.config.Production {
+	//	env = environment
+	//}
 	forceApi, err := force.Create(
 		fmt.Sprintf("v%v.0", s.config.SalesForce.ApiVersion),
 		s.config.SalesForce.ClientID,
@@ -237,6 +237,10 @@ func (s *SalesForce) PushToSalesForce(invoices []*Invoice, invoiceLineItems []*I
 
 	for index := range invoiceLineItems {
 		invoiceLineItems[index].InvoiceID = invoiceMapping[invoiceLineItems[index].InvoiceNumber]
+	}
+
+	if len(invoiceLineItems) == 0 {
+		return errors.New("get 0 invoice line items for pushing")
 	}
 
 	invoiceLineItemJobID, err := s.GetInvoiceLineItemGobID()
