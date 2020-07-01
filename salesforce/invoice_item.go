@@ -16,6 +16,8 @@ type InvoiceLineItem struct {
 	CurrencyIsoCode     string  `json:"CurrencyIsoCode"`
 	Description         string  `json:"Description__c"`
 	LineItemNumber      int64   `json:"Line_Number__c"`
+	ProductID           string  `json:"Product__c,omitempty"`
+	ProgramID           string  `json:"Program__c,omitempty"`
 }
 
 func (s *SalesForce) GetInvoiceLineItemGobID() (string, error) {
