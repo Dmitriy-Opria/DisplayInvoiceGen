@@ -217,6 +217,8 @@ func ConvertInvoiceLineItems(invoiceLineItems []*postgres.InvoiceLineItemUP) []*
 			CurrencyIsoCode:     invoiceLineItems[index].InvoiceCurrency,
 			Description:         invoiceLineItems[index].Description,
 			LineItemNumber:      invoiceLineItems[index].LineItemNumber,
+			ProductID:           invoiceLineItems[index].ProductID,
+			ProgramID:           invoiceLineItems[index].ProgramID,
 		}
 		resp = append(resp, invoiceLineItem)
 	}

@@ -22,7 +22,9 @@ type InvoiceLineItemUP struct {
 	InvoiceLineItem
 	InvoiceID       string `json:"InvoiceID"                          sql:"-"`
 	InvoiceCurrency string `json:"InvoiceCurrency"                    sql:"invoicecurrency"`
+	ProgramID       string `json:"ProgramID"                          sql:"program_id"`
 	ChargeID        int64  `json:"ChargeID"                           sql:"charge_id,notnull,type:bigint"`
+	ProductID       string `json:"ProductID"                          sql:"product_id"`
 	Description     string `json:"Description"                        sql:"note"`
 }
 
@@ -83,12 +85,17 @@ func (p *ConnectionWrapper) GetInvoicesLineItems(billingDate string, approved bo
 		il.lineitemamount,
 		il.lineitemnumber,
 		invoicecurrency,
+		c.note,
+		c.program_id,
 		c.charge_id,
-		c.note
+		pr."Id" as product_id
 	FROM invoice i
 		JOIN invoicelineitem il on il.invoicenumber = i.invoicenumber
 		JOIN charge c on il.charge_id = c.charge_id
-	WHERE %v i.isapproved and i.billingdate='%v'`,
+		JOIN sfdc."Product" pr on pr."GBS_Product_ID__c" = cast(c.product_id as varchar)
+	WHERE %v i.isapproved
+		AND i.isUploadedToSalesforce = false
+		AND i.billingdate='%v'`,
 		notSuffix,
 		billingDate)
 
@@ -97,6 +104,9 @@ func (p *ConnectionWrapper) GetInvoicesLineItems(billingDate string, approved bo
 	if err != nil {
 		log.Warnf("can't execute pg query: %s", err)
 		return nil, err
+	}
+	for index := range invoiceLineItems {
+		log.Infof("invoice_line_item%#v", invoiceLineItems[index])
 	}
 
 	return invoiceLineItems, nil
