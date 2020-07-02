@@ -16,8 +16,10 @@ type Config struct {
 	Production    bool
 
 	Postgres              PostgresConfig
+	Rabbit                RabbitConfig
 	TaxCalculationService ExternalService
 	TaxCalculationParams  ExternalParams
+	SalesForce            SalesForceConfig
 }
 
 // PostgresConfig configuration structure for postgres database
@@ -29,9 +31,45 @@ type PostgresConfig struct {
 	Debug    bool
 }
 
+type RabbitConfig struct {
+	Host         string
+	Port         int
+	User         string
+	Pass         string
+	VHost        string
+	ExchangeName string
+
+	ConsumerInvoiceQueueName string
+	ConsumerInvoiceRouteKey  string
+
+	ConsumerSFQueueName string
+	ConsumerSFRouteKey  string
+
+	ProducerPDFQueueName string
+	ProducerPDFRouteKey  string
+
+	ProducerSFQueueName string
+	ProducerSFRouteKey  string
+}
+
 type ExternalService struct {
 	Address   string
 	AuthToken string
+	Retry     int
+}
+
+type SalesForceConfig struct {
+	ApiVersion    string
+	ClientID      string
+	ClientSecret  string
+	UserName      string
+	Pass          string
+	SecurityToken string
+	Retry         int
+	RecordTypeId  string
+
+	TickerPeriod     int64
+	ValidationPeriod int64
 }
 
 type ExternalParams struct {
@@ -56,6 +94,8 @@ func (c Config) Validate() error {
 		v.Field(&c.ListenAddress, v.Required),
 		v.Field(&c.Postgres),
 		v.Field(&c.TaxCalculationService),
+		v.Field(&c.SalesForce),
+		v.Field(&c.TaxCalculationParams),
 	)
 }
 
@@ -69,16 +109,70 @@ func (p PostgresConfig) Validate() error {
 	)
 }
 
+// Validate rabbitMQ config structure
+func (r RabbitConfig) Validate() error {
+	return v.ValidateStruct(&r,
+		v.Field(&r.Host, v.Required),
+		v.Field(&r.Port, v.Required),
+		v.Field(&r.User, v.Required),
+		v.Field(&r.Pass, v.Required),
+		//v.Field(&r.VHost, v.Required),
+		v.Field(&r.ExchangeName, v.Required),
+		v.Field(&r.ConsumerInvoiceQueueName, v.Required),
+		v.Field(&r.ConsumerInvoiceRouteKey, v.Required),
+		v.Field(&r.ConsumerSFQueueName, v.Required),
+		v.Field(&r.ConsumerSFRouteKey, v.Required),
+		v.Field(&r.ProducerPDFQueueName, v.Required),
+		v.Field(&r.ProducerPDFRouteKey, v.Required),
+		v.Field(&r.ProducerSFQueueName, v.Required),
+		v.Field(&r.ProducerSFRouteKey, v.Required),
+	)
+}
+
 // Validate external service config structure
-func (p ExternalService) Validate() error {
+func (e ExternalService) Validate() error {
+	return v.ValidateStruct(&e,
+		v.Field(&e.Address, v.Required),
+		v.Field(&e.Retry, v.Required),
+	)
+}
+
+// Validate external params config structure
+func (e ExternalParams) Validate() error {
+	return v.ValidateStruct(&e,
+		v.Field(&e.CompanyName, v.Required),
+		v.Field(&e.RegistrationAU, v.Required),
+		v.Field(&e.RegistrationUS, v.Required),
+		v.Field(&e.RegistrationEU, v.Required),
+		v.Field(&e.RegistrationIsoAU, v.Required),
+		v.Field(&e.RegistrationIsoUS, v.Required),
+		v.Field(&e.RegistrationIsoEU, v.Required),
+		v.Field(&e.TaxIdUS, v.Required),
+		v.Field(&e.TaxIdAU, v.Required),
+		v.Field(&e.TaxIdEU, v.Required),
+		v.Field(&e.ProductClass, v.Required),
+		v.Field(&e.TransactionType, v.Required),
+	)
+}
+
+// Validate external service config structure
+func (p SalesForceConfig) Validate() error {
 	return v.ValidateStruct(&p,
-		v.Field(&p.Address, v.Required),
+		v.Field(&p.ApiVersion, v.Required),
+		v.Field(&p.ClientID, v.Required),
+		v.Field(&p.ClientSecret, v.Required),
+		v.Field(&p.UserName, v.Required),
+		v.Field(&p.Pass, v.Required),
+		v.Field(&p.SecurityToken, v.Required),
+		v.Field(&p.RecordTypeId, v.Required),
+		v.Field(&p.TickerPeriod, v.Required),
+		v.Field(&p.ValidationPeriod, v.Required),
 	)
 }
 
 // InitConfig initialize application configuration and validate all fields
 func InitConfig() *Config {
-	body, err := ioutil.ReadFile("config.yml")
+	body, err := ioutil.ReadFile("config.yaml")
 	if err != nil {
 		log.Fatalf("can't init config, err %s", err.Error())
 	}
@@ -106,8 +200,28 @@ func initConfig(body []byte) *Config {
 	c.Postgres.Database = vip.GetString("PG_NAME")
 	c.Postgres.Debug = vip.GetBool("PG_DEBUG")
 
+	c.Rabbit.Host = vip.GetString("RABBIT_HOST")
+	c.Rabbit.Port = vip.GetInt("RABBIT_PORT")
+	c.Rabbit.User = vip.GetString("RABBIT_USER")
+	c.Rabbit.Pass = vip.GetString("RABBIT_PASS")
+	c.Rabbit.VHost = vip.GetString("RABBIT_VHOST")
+	c.Rabbit.ExchangeName = vip.GetString("RABBIT_EXCHANGE_NAME")
+
+	c.Rabbit.ConsumerInvoiceQueueName = vip.GetString("RABBIT_CONSUMER_INVOICE_QUEUE_NAME")
+	c.Rabbit.ConsumerInvoiceRouteKey = vip.GetString("RABBIT_CONSUMER_INVOICE_ROUTE_KEY")
+
+	c.Rabbit.ConsumerSFQueueName = vip.GetString("RABBIT_CONSUMER_SF_QUEUE_NAME")
+	c.Rabbit.ConsumerSFRouteKey = vip.GetString("RABBIT_CONSUMER_SF_ROUTE_KEY")
+
+	c.Rabbit.ProducerPDFQueueName = vip.GetString("RABBIT_PRODUCER_PDF_QUEUE_NAME")
+	c.Rabbit.ProducerPDFRouteKey = vip.GetString("RABBIT_PRODUCER_PDF_ROUTE_KEY")
+
+	c.Rabbit.ProducerSFQueueName = vip.GetString("RABBIT_PRODUCER_SF_QUEUE_NAME")
+	c.Rabbit.ProducerSFRouteKey = vip.GetString("RABBIT_PRODUCER_SF_ROUTE_KEY")
+
 	c.TaxCalculationService.Address = vip.GetString("API_ADDRESS")
 	c.TaxCalculationService.AuthToken = vip.GetString("API_AUTHORIZATION_TOKEN")
+	c.TaxCalculationService.Retry = vip.GetInt("ARI_RETRY")
 
 	c.TaxCalculationParams.CompanyName = vip.GetString("COMPANY_NAME")
 	c.TaxCalculationParams.ProductClass = vip.GetString("PRODUCT_CLASS")
@@ -120,6 +234,16 @@ func initConfig(body []byte) *Config {
 	c.TaxCalculationParams.TaxIdUS = vip.GetString("TAX_ID_US")
 	c.TaxCalculationParams.TaxIdAU = vip.GetString("TAX_ID_AU")
 	c.TaxCalculationParams.TaxIdEU = vip.GetString("TAX_ID_EU")
+
+	c.SalesForce.ApiVersion = vip.GetString("SALES_FORCE_VERSION")
+	c.SalesForce.ClientID = vip.GetString("SALES_FORCE_CLIENT_ID")
+	c.SalesForce.ClientSecret = vip.GetString("SALES_FORCE_CLIENT_SECRET")
+	c.SalesForce.UserName = vip.GetString("SALES_FORCE_USER_NAME")
+	c.SalesForce.Pass = vip.GetString("SALES_FORCE_PASSWORD")
+	c.SalesForce.SecurityToken = vip.GetString("SALES_FORCE_SECURITY_TOKEN")
+	c.SalesForce.RecordTypeId = vip.GetString("SALES_FORCE_RECORD_TYPE_ID")
+	c.SalesForce.TickerPeriod = vip.GetInt64("SALES_FORCE_TICKER_PERIOD_SEC")
+	c.SalesForce.ValidationPeriod = vip.GetInt64("SALES_FORCE_VALIDATION_PERIOD_MIN")
 
 	RegistrationAU := vip.GetStringSlice("AU_REGISTRATION")
 	RegistrationUS := vip.GetStringSlice("US_REGISTRATION")

@@ -1,10 +1,11 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/InVisionApp/rye"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 func (a *Api) CreateRouter() http.Handler {
@@ -39,7 +40,14 @@ func (a *Api) CreateRouter() http.Handler {
 		MiddlewareRouteLogger(),
 		a.middlewareParseBillingDate,
 		a.createInvoice,
-	}))).Methods("POST")
+	}))).Methods("GET")
+
+	// upload_invoice to salesforce
+	routes.Handle(wrapHandle(serviceName+"/upload_invoice", middlewareHandler.Handle([]rye.Handler{
+		MiddlewareRouteLogger(),
+		a.middlewareParseBillingDate,
+		a.uploadInvoice,
+	}))).Methods("GET")
 
 	return routes
 }

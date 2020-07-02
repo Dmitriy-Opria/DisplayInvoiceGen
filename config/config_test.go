@@ -17,9 +17,31 @@ PG_PASS: pass
 PG_NAME: gbs
 PG_DEBUG: false
 
+#PABBIT_MQ QUEUE
+RABBIT_HOST: 127.0.0.43
+RABBIT_PORT: 5672
+RABBIT_USER: admin
+RABBIT_PASS: pass
+RABBIT_VHOST: Vhost
+RABBIT_EXCHANGE_NAME: exchange.display.invoice
+
+RABBIT_CONSUMER_INVOICE_QUEUE_NAME: queue.display.invoice
+RABBIT_CONSUMER_INVOICE_ROUTE_KEY: queue.display.invoice.routeKey
+
+RABBIT_CONSUMER_SF_QUEUE_NAME: queue.display.data.salesforce.upload
+RABBIT_CONSUMER_SF_ROUTE_KEY: queue.display.data.salesforce.upload.routeKey
+
+RABBIT_PRODUCER_PDF_QUEUE_NAME: queue.display.pdf
+RABBIT_PRODUCER_PDF_ROUTE_KEY: queue.display.pdf.routeKey
+
+RABBIT_PRODUCER_SF_QUEUE_NAME: queue.display.data.salesforce.upload
+RABBIT_PRODUCER_SF_ROUTE_KEY: queue.display.data.salesforce.upload.routeKey
+
+
 #EXTERNAL SERVICE
 API_ADDRESS: https://sloth-qa.private.linksynergy.com
 API_AUTHORIZATION_TOKEN: 'Bearer'
+ARI_RETRY: 3
 
 #REQUEST PARAMS
 COMPANY_NAME: 'Rakuten'
@@ -39,6 +61,17 @@ EU_ISO_REGISTRATION: 'GB'
 
 PRODUCT_CLASS: 'ASDE'
 TRANSACTION_TYPE: 'SALE'
+
+#EXTERNAL SERVICE
+SALES_FORCE_VERSION: v48.0
+SALES_FORCE_CLIENT_ID: client_id
+SALES_FORCE_CLIENT_SECRET: client_secret
+SALES_FORCE_USER_NAME: test@gmail.com
+SALES_FORCE_PASSWORD: client_pass
+SALES_FORCE_SECURITY_TOKEN: client_token
+SALES_FORCE_TICKER_PERIOD_SEC: 30
+SALES_FORCE_VALIDATION_PERIOD_MIN: 300
+SALES_FORCE_RECORD_TYPE_ID: '0122f0000008t9iAAA'
 `)
 
 var _ = Describe("Invoice config test", func() {
@@ -53,10 +86,30 @@ var _ = Describe("Invoice config test", func() {
 			Expect(conf.Postgres.User).To(Equal("gbs_flow"))
 			Expect(conf.Postgres.Pass).To(Equal("pass"))
 			Expect(conf.Postgres.Database).To(Equal("gbs"))
-			Expect(conf.Postgres.Debug).To(Equal(false))
+
+			Expect(conf.Rabbit.Host).To(Equal("127.0.0.43"))
+			Expect(conf.Rabbit.Port).To(Equal(5672))
+			Expect(conf.Rabbit.User).To(Equal("admin"))
+			Expect(conf.Rabbit.Pass).To(Equal("pass"))
+			Expect(conf.Rabbit.VHost).To(Equal("Vhost"))
+
+			Expect(conf.Rabbit.ExchangeName).To(Equal("exchange.display.invoice"))
+
+			Expect(conf.Rabbit.ConsumerInvoiceQueueName).To(Equal("queue.display.invoice"))
+			Expect(conf.Rabbit.ConsumerInvoiceRouteKey).To(Equal("queue.display.invoice.routeKey"))
+
+			Expect(conf.Rabbit.ConsumerSFQueueName).To(Equal("queue.display.data.salesforce.upload"))
+			Expect(conf.Rabbit.ConsumerSFRouteKey).To(Equal("queue.display.data.salesforce.upload.routeKey"))
+
+			Expect(conf.Rabbit.ProducerPDFQueueName).To(Equal("queue.display.pdf"))
+			Expect(conf.Rabbit.ProducerPDFRouteKey).To(Equal("queue.display.pdf.routeKey"))
+
+			Expect(conf.Rabbit.ProducerSFQueueName).To(Equal("queue.display.data.salesforce.upload"))
+			Expect(conf.Rabbit.ProducerSFRouteKey).To(Equal("queue.display.data.salesforce.upload.routeKey"))
 
 			Expect(conf.TaxCalculationService.AuthToken).To(Equal("Bearer"))
 			Expect(conf.TaxCalculationService.Address).To(Equal("https://sloth-qa.private.linksynergy.com"))
+			Expect(conf.TaxCalculationService.Retry).To(Equal(3))
 
 			Expect(conf.TaxCalculationParams.CompanyName).To(Equal("Rakuten"))
 			Expect(conf.TaxCalculationParams.TransactionType).To(Equal("SALE"))
@@ -72,6 +125,16 @@ var _ = Describe("Invoice config test", func() {
 			Expect(conf.TaxCalculationParams.RegistrationIsoAU).To(Equal("AU"))
 			Expect(conf.TaxCalculationParams.RegistrationIsoUS).To(Equal("US"))
 			Expect(conf.TaxCalculationParams.RegistrationIsoEU).To(Equal("GB"))
+
+			Expect(conf.SalesForce.ApiVersion).To(Equal("v48.0"))
+			Expect(conf.SalesForce.ClientID).To(Equal("client_id"))
+			Expect(conf.SalesForce.ClientSecret).To(Equal("client_secret"))
+			Expect(conf.SalesForce.UserName).To(Equal("test@gmail.com"))
+			Expect(conf.SalesForce.Pass).To(Equal("client_pass"))
+			Expect(conf.SalesForce.SecurityToken).To(Equal("client_token"))
+			Expect(conf.SalesForce.RecordTypeId).To(Equal("0122f0000008t9iAAA"))
+			Expect(conf.SalesForce.TickerPeriod).To(Equal(int64(30)))
+			Expect(conf.SalesForce.ValidationPeriod).To(Equal(int64(300)))
 		})
 	})
 })

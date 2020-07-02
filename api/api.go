@@ -2,18 +2,22 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/InVisionApp/rye"
-	"github.com/sirupsen/logrus"
-	"github.rakops.com/BNP/DisplayInvoiceGen/config"
-	"github.rakops.com/BNP/DisplayInvoiceGen/deps"
-	"github.rakops.com/BNP/DisplayInvoiceGen/log"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/InVisionApp/rye"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.rakops.com/BNP/DisplayInvoiceGen/config"
+	"github.rakops.com/BNP/DisplayInvoiceGen/deps"
+	"github.rakops.com/BNP/DisplayInvoiceGen/log"
 )
 
 type contextKey int
@@ -38,12 +42,8 @@ func New(cfg *config.Config, version string, deps *deps.Dependencies) (*Api, err
 
 func (a *Api) Run() {
 	srv := &http.Server{
-		Addr:    a.Config.ListenAddress,
-		Handler: a.CreateRouter(),
-
-		// There are few endpoints (migration endpoints) which can take a lot of
-		// time to finish. We need to put the WriteTimout to some big number so we
-		// can handle even the largest conversions
+		Addr:         a.Config.ListenAddress,
+		Handler:      a.CreateRouter(),
 		WriteTimeout: 60 * time.Second,
 
 		ReadTimeout:    5 * time.Second,
@@ -66,6 +66,7 @@ func (a *Api) Run() {
 			once.Do(func() {
 
 				a.Deps.Postgres.Close()
+				a.Deps.Consumer.Shutdown()
 				log.Warnf("Tax calculator stopped successfully")
 
 				cleanupDone <- true
@@ -96,7 +97,7 @@ func wrapHandle(path string, handler http.Handler) (string, http.Handler) {
 		defer func() {
 			if err := recover(); err != nil {
 				statusCode := http.StatusInternalServerError
-				rye.WriteJSONStatus(w, "error", "internal server error", statusCode)
+				rye.WriteJSONStatus(w, "error", fmt.Sprintf("internal server error: %v", err), statusCode)
 			}
 		}()
 
@@ -140,4 +141,38 @@ func (a *Api) middlewareParseBillingDate(rw http.ResponseWriter, r *http.Request
 	ctx = context.WithValue(ctx, ContextBillingTime, billingTime)
 
 	return &rye.Response{Context: ctx}
+}
+
+func readBody(message interface{}, r *http.Request) *rye.Response {
+	defer r.Body.Close()
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return BadRequestResponse(err, "unable to read request body")
+	}
+
+	if err = json.Unmarshal(body, message); err != nil {
+		return BadRequestResponse(err, "invalid json message")
+	}
+	return nil
+}
+
+func ServerErrorResponse(err error, message string) *rye.Response {
+	return &rye.Response{
+		Err:        errors.Wrap(err, message),
+		StatusCode: http.StatusInternalServerError,
+	}
+}
+
+func BadRequestResponse(err error, message string) *rye.Response {
+	return &rye.Response{
+		Err:        errors.Wrap(err, message),
+		StatusCode: http.StatusBadRequest,
+	}
+}
+
+func NotFoundResponse(err error, message string) *rye.Response {
+	return &rye.Response{
+		Err:        errors.Wrap(err, message),
+		StatusCode: http.StatusNotFound,
+	}
 }

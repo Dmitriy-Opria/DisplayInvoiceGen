@@ -22,7 +22,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      - run: docker build --no-cache --build-arg GITHUB_RAKOPS=${GITHUB_RAKOPS} --build-arg PG_USER=${PG_USER} --build-arg PG_PASS=${PG_PASS} --build-arg PG_ADDR=${PG_ADDR} --build-arg PG_NAME=${PG_NAME} --build-arg AUTH_TOKEN=${AUTH_TOKEN} -t repo.rmgops.com/docker/display_invoice/invoice_gen:master -f invoice_gen.Dockerfile .
+      - run: docker build --no-cache --build-arg GITHUB_RAKOPS=${GITHUB_RAKOPS} --build-arg ARTIFACTORY_APIKEY=${ARTIFACTORY_APIKEY} --build-arg PROD='true' -t repo.rmgops.com/docker/display_invoice/invoice_gen:master -f invoice_gen.Dockerfile .
       - run: docker images
       - run: docker login  -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_APIKEY} repo.rmgops.com
       - run: docker push repo.rmgops.com/docker/display_invoice/invoice_gen:master
@@ -34,7 +34,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: docker build --build-arg GITHUB_RAKOPS=${GITHUB_RAKOPS} -t repo.rmgops.com/docker/display_invoice/invoice_gen:develop -f invoice_gen.Dockerfile .
+      - run: docker build --build-arg GITHUB_RAKOPS=${GITHUB_RAKOPS} --build-arg ARTIFACTORY_APIKEY=${ARTIFACTORY_APIKEY} -t repo.rmgops.com/docker/display_invoice/invoice_gen:develop -f invoice_gen.Dockerfile .
       - run: docker images
       - run: docker login  -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_APIKEY} repo.rmgops.com
       - run: docker push repo.rmgops.com/docker/display_invoice/invoice_gen:develop

@@ -2,9 +2,10 @@ package postgres
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/go-pg/pg"
 	"github.rakops.com/BNP/DisplayInvoiceGen/log"
-	"time"
 )
 
 type Charge struct {
@@ -20,10 +21,11 @@ type Charge struct {
 	BillingCountryCode        string   `json:"BillingCountryCode"        sql:"BillingCountryCode"`
 	VATRegistrationNumber     string   `json:"VATRegistrationNumber"     sql:"c2g__VATRegistrationNumber__c"`
 	RakutenCountry            string   `json:"RakutenCountry"            sql:"c2g__Country__c"`
-	ChargeID                  int64    `json:"ChargeId" 				 sql:"charge_id"`
+	ChargeID                  int64    `json:"ChargeId"                  sql:"charge_id"`
+	Description               string   `json:"Description"               sql:"note"`
 }
 
-func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error) {
+func (p *ConnectionWrapper) GetNotProcessedChargedList(billingDate string) ([]*Charge, error) {
 	str := time.Now()
 	defer func() {
 		log.Infof("postgres query: %v seconds", time.Since(str).Seconds()*1000)
@@ -42,12 +44,14 @@ func (p *ConnectionWrapper) GetChargedList(billingDate string) ([]*Charge, error
 				--Seller VAT and RakutenCountry Code
 				comp."c2g__VATRegistrationNumber__c",
 				comp."c2g__Country__c",
-				c.charge_id
+				c.charge_id,
+				c.note
 			from public.charge c
 			join sfdc."Program" p on c.program_id = p."Id" and billing_date = '%s'
 			join sfdc."BillingSetting" b on p."GBS_Billing_Setting__c" = b."Id"
 			join sfdc."Company" comp on b."Company__c" = comp."Id"	
 			join sfdc."Account" a on b."Account__c" = a."Id"
+			where c.charge_id not in (select invoicelineitem.charge_id from invoicelineitem)
 			order by p."GBS_Billing_Setting__c"`, billingDate)
 
 	_, err := p.client.Query(&chargers, query)

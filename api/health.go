@@ -3,8 +3,9 @@ package api
 import (
 	"errors"
 	"fmt"
-	"github.com/InVisionApp/rye"
 	"net/http"
+
+	"github.com/InVisionApp/rye"
 )
 
 func (a *Api) healthHandler(rw http.ResponseWriter, r *http.Request) *rye.Response {
