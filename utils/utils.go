@@ -197,7 +197,7 @@ func ConvertInvoice(invoices []*postgres.InvoiceUp) []*salesforce.Invoice {
 			InvoiceDueDate:  dueDate,
 			Company:         invoices[index].CompanyName,
 			PONumber:        invoices[index].PONumber,
-			RecordTypeId:    "0122f0000008t9iAAA",
+			RecordTypeId:    "0123l000000oL96AAE", //TODO move to config
 		}
 
 		resp = append(resp, invoice)
