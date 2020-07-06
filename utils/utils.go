@@ -177,7 +177,7 @@ func CombineCalculatedInvoiceLineItem(id int64, taxRate float64, charges []*post
 	return invoiceLineItems
 }
 
-func ConvertInvoice(invoices []*postgres.InvoiceUp) []*salesforce.Invoice {
+func ConvertInvoice(invoices []*postgres.InvoiceUp, recordTypeID string) []*salesforce.Invoice {
 	resp := []*salesforce.Invoice{}
 	for index := range invoices {
 		dueDate := ""
@@ -197,7 +197,7 @@ func ConvertInvoice(invoices []*postgres.InvoiceUp) []*salesforce.Invoice {
 			InvoiceDueDate:  dueDate,
 			Company:         invoices[index].CompanyName,
 			PONumber:        invoices[index].PONumber,
-			RecordTypeId:    "0123l000000oL96AAE", //TODO move to config
+			RecordTypeId:    recordTypeID,
 		}
 
 		resp = append(resp, invoice)

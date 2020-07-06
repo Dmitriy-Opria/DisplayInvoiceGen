@@ -112,7 +112,7 @@ func (q *Wrapper) SalesForceProcessor(channel <-chan amqp.Delivery) {
 					d.Nack(false, false)
 					return
 				}
-				err = q.deps.SalesForce.PushToSalesForce(utils.ConvertInvoice(invoicesApproved), utils.ConvertInvoiceLineItems(invoiceLineItems))
+				err = q.deps.SalesForce.PushToSalesForce(utils.ConvertInvoice(invoicesApproved, q.deps.Config.SalesForce.RecordTypeId), utils.ConvertInvoiceLineItems(invoiceLineItems))
 				if err != nil {
 					log.Warnf("can't publish invoices to salesforce: %v", err)
 					d.Nack(false, false)

@@ -20,5 +20,4 @@ sales_force_prod_stop:
     docker rm salesforce_uploader
 sales_force_prod_start:
 	@docker pull repo.rmgops.com/docker/upload_pdf/salesforce_uploader:master && \
-	docker run -it -d -p 9065:9065 --name salesforce_uploader -v $(pwd)/current:/src/current -v $(pwd)/archived:/src/archived repo.rmgops.com/docker/upload_pdf/salesforce_uploader:master
-
+	docker run -it -d -p 9065:9065 --name salesforce_uploader --mount source=myvolume,target=/ipg -v /archived:/src/archived repo.rmgops.com/docker/upload_pdf/salesforce_uploader:master

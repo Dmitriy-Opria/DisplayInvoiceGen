@@ -25,7 +25,7 @@ func (a *Api) uploadInvoice(w http.ResponseWriter, r *http.Request) *rye.Respons
 			return ServerErrorResponse(err, "can't select approved invoices line items")
 		}
 
-		err = a.Deps.SalesForce.PushToSalesForce(utils.ConvertInvoice(invoices), utils.ConvertInvoiceLineItems(invoiceLineItems))
+		err = a.Deps.SalesForce.PushToSalesForce(utils.ConvertInvoice(invoices, a.Config.SalesForce.RecordTypeId), utils.ConvertInvoiceLineItems(invoiceLineItems))
 		if err != nil {
 			return ServerErrorResponse(err, "can'push to salse force")
 		}
