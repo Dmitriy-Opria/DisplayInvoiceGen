@@ -52,38 +52,45 @@ func (q *Wrapper) Run() error {
 func (q *Wrapper) InvoiceProcessor(channel <-chan amqp.Delivery) {
 
 Restart:
-	for d := range channel {
-		log.Warnf(
-			"got invoice %dB delivery: [%v] %q",
-			len(d.Body),
-			d.DeliveryTag,
-			d.Body,
-		)
+	if channel != nil {
+		for d := range channel {
+			log.Warnf(
+				"got invoice %dB delivery: [%v] %q",
+				len(d.Body),
+				d.DeliveryTag,
+				d.Body,
+			)
 
-		if err := q.CreateInvoice(string(d.Body)); err == AlreadyExist {
+			if err := q.CreateInvoice(string(d.Body)); err == AlreadyExist {
+				d.Ack(false)
+				log.Warnf("ack existed invoice: %v", err)
+				continue
+			} else if err != nil {
+				log.Warnf("can't create invoice: %v", err)
+				d.Nack(false, false)
+				continue
+			}
+
+			q.deps.Producer.Send(string(d.Body))
 			d.Ack(false)
-			log.Warnf("ack existed invoice: %v", err)
-			continue
-		} else if err != nil {
-			log.Warnf("can't create invoice: %v", err)
-			d.Nack(false, false)
-			continue
+			log.Info("invoice ack")
 		}
-
-		q.deps.Producer.Send(string(d.Body))
-		d.Ack(false)
-		log.Info("invoice ack")
 	}
 	log.Warnf("handle: deliveries channel closed")
-	q.deps.Consumer.Done(nil)
 
-	time.Sleep(10 * time.Minute)
+	time.Sleep(time.Minute)
 
-	var err error
-	channel, err = q.deps.Consumer.GetChannel(consumer.Invoice)
+	err := q.reconnectRabbitMQ()
 	if err != nil {
 		log.Warnf("can't reconnect to rabbitMQ, will try after 10 minutes: %v", err)
+		goto Restart
 	}
+
+	channel, err = q.deps.Consumer.GetChannel(consumer.Invoice)
+	if err != nil {
+		log.Warnf("can't get channel of rabbitMQ, will try after 10 minutes: %v", err)
+	}
+	log.Infof("consumer initialized")
 
 	goto Restart
 }
@@ -91,72 +98,79 @@ Restart:
 func (q *Wrapper) SalesForceProcessor(channel <-chan amqp.Delivery) {
 
 Restart:
-	for d := range channel {
-		log.Warnf(
-			"got salesforce %dB delivery: [%v] %q",
-			len(d.Body),
-			d.DeliveryTag,
-			d.Body,
-		)
+	if channel != nil {
+		for d := range channel {
+			log.Warnf(
+				"got salesforce %dB delivery: [%v] %q",
+				len(d.Body),
+				d.DeliveryTag,
+				d.Body,
+			)
 
-		func() {
-			str := time.Now()
-			defer func() {
-				log.Infof("ticker time processing: %v seconds", time.Since(str).Seconds()*1000)
+			func() {
+				str := time.Now()
+				defer func() {
+					log.Infof("ticker time processing: %v seconds", time.Since(str).Seconds()*1000)
+				}()
+				// process msg for 5 hours, if it still not approved
+				if q.TimedOut(string(d.Body)) {
+					log.Infof("salesforce sending timed out, billing date: %v", string(d.Body))
+					d.Ack(false)
+					return
+				}
+
+				invoicesApproved, err := q.deps.Postgres.GetInvoices(string(d.Body), true)
+				if err != nil {
+					log.Warnf("can't select approved invoices: %v", err)
+					d.Nack(false, false)
+					return
+				}
+				if len(invoicesApproved) > 0 {
+					invoiceLineItems, err := q.deps.Postgres.GetInvoicesLineItems(string(d.Body), true)
+					if err != nil {
+						log.Warnf("can't select approved invoices line items: %v", err)
+						d.Nack(false, false)
+						return
+					}
+					err = q.deps.SalesForce.PushToSalesForce(utils.ConvertInvoice(invoicesApproved, q.deps.Config.SalesForce.RecordTypeId), utils.ConvertInvoiceLineItems(invoiceLineItems))
+					if err != nil {
+						log.Warnf("can't publish invoices to salesforce: %v", err)
+						d.Nack(false, false)
+						return
+					}
+					err = q.deps.Postgres.MarkInvoiceAsPublished(invoicesApproved)
+					if err != nil {
+						log.Warnf("can't mark invoices as published: %v", err)
+						d.Nack(false, false)
+						return
+					}
+					log.Infof("processed invoices: %v", len(invoicesApproved))
+					log.Infof("processed invoice line items: %v", len(invoiceLineItems))
+					log.Info("salesforce ack")
+					d.Ack(false)
+				} else {
+					log.Info("retry salesforce processing")
+					time.Sleep(time.Duration(q.deps.Config.SalesForce.TickerPeriod) * time.Second)
+					d.Reject(true)
+				}
 			}()
-			// process msg for 5 hours, if it still not approved
-			if q.TimedOut(string(d.Body)) {
-				log.Infof("salesforce sending timed out, billing date: %v", string(d.Body))
-				d.Ack(false)
-				return
-			}
-
-			invoicesApproved, err := q.deps.Postgres.GetInvoices(string(d.Body), true)
-			if err != nil {
-				log.Warnf("can't select approved invoices: %v", err)
-				d.Nack(false, false)
-				return
-			}
-			if len(invoicesApproved) > 0 {
-				invoiceLineItems, err := q.deps.Postgres.GetInvoicesLineItems(string(d.Body), true)
-				if err != nil {
-					log.Warnf("can't select approved invoices line items: %v", err)
-					d.Nack(false, false)
-					return
-				}
-				err = q.deps.SalesForce.PushToSalesForce(utils.ConvertInvoice(invoicesApproved, q.deps.Config.SalesForce.RecordTypeId), utils.ConvertInvoiceLineItems(invoiceLineItems))
-				if err != nil {
-					log.Warnf("can't publish invoices to salesforce: %v", err)
-					d.Nack(false, false)
-					return
-				}
-				err = q.deps.Postgres.MarkInvoiceAsPublished(invoicesApproved)
-				if err != nil {
-					log.Warnf("can't mark invoices as published: %v", err)
-					d.Nack(false, false)
-					return
-				}
-				log.Infof("processed invoices: %v", len(invoicesApproved))
-				log.Infof("processed invoice line items: %v", len(invoiceLineItems))
-				log.Info("salesforce ack")
-				d.Ack(false)
-			} else {
-				log.Info("retry salesforce processing")
-				time.Sleep(time.Duration(q.deps.Config.SalesForce.TickerPeriod) * time.Second)
-				d.Reject(true)
-			}
-		}()
+		}
 	}
 	log.Warnf("handle: deliveries channel closed")
-	q.deps.Consumer.Done(nil)
 
-	time.Sleep(10 * time.Minute)
+	time.Sleep(time.Minute)
 
-	var err error
-	channel, err = q.deps.Consumer.GetChannel(consumer.SalesForce)
+	err := q.reconnectRabbitMQ()
 	if err != nil {
 		log.Warnf("can't reconnect to rabbitMQ, will try after 10 minutes: %v", err)
+		goto Restart
 	}
+
+	channel, err = q.deps.Consumer.GetChannel(consumer.SalesForce)
+	if err != nil {
+		log.Warnf("can't get channel of rabbitMQ, will try after 10 minutes: %v", err)
+	}
+	log.Infof("consumer initialized")
 
 	goto Restart
 }
@@ -179,4 +193,15 @@ func (q *Wrapper) TimedOut(billingDate string) bool {
 		return false
 	}
 	return false
+}
+
+func (q *Wrapper) reconnectRabbitMQ() error {
+	conn := consumer.NewConsumer(q.deps.Config)
+	if err := conn.Connect(); err != nil {
+		log.Warnf("Can't connect db, %v", err.Error())
+		return err
+	}
+	log.Info("RabbitMQ consumer was successfully initialized")
+	q.deps.Consumer = conn
+	return nil
 }
