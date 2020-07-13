@@ -44,13 +44,14 @@ func (q *Wrapper) Run() error {
 	// Generate invoices worker
 	go q.InvoiceProcessor(invoiceChannel)
 
-	// Push push approved invoice to salesforce worker
+	// Push approved invoice to salesforce worker
 	go q.SalesForceProcessor(salesForceChannel)
 	return nil
 }
 
 func (q *Wrapper) InvoiceProcessor(channel <-chan amqp.Delivery) {
 
+Restart:
 	for d := range channel {
 		log.Warnf(
 			"got invoice %dB delivery: [%v] %q",
@@ -75,10 +76,21 @@ func (q *Wrapper) InvoiceProcessor(channel <-chan amqp.Delivery) {
 	}
 	log.Warnf("handle: deliveries channel closed")
 	q.deps.Consumer.Done(nil)
+
+	time.Sleep(10 * time.Minute)
+
+	var err error
+	channel, err = q.deps.Consumer.GetChannel(consumer.Invoice)
+	if err != nil {
+		log.Warnf("can't reconnect to rabbitMQ, will try after 10 minutes: %v", err)
+	}
+
+	goto Restart
 }
 
 func (q *Wrapper) SalesForceProcessor(channel <-chan amqp.Delivery) {
 
+Restart:
 	for d := range channel {
 		log.Warnf(
 			"got salesforce %dB delivery: [%v] %q",
@@ -137,6 +149,16 @@ func (q *Wrapper) SalesForceProcessor(channel <-chan amqp.Delivery) {
 	}
 	log.Warnf("handle: deliveries channel closed")
 	q.deps.Consumer.Done(nil)
+
+	time.Sleep(10 * time.Minute)
+
+	var err error
+	channel, err = q.deps.Consumer.GetChannel(consumer.SalesForce)
+	if err != nil {
+		log.Warnf("can't reconnect to rabbitMQ, will try after 10 minutes: %v", err)
+	}
+
+	goto Restart
 }
 
 func (q *Wrapper) TimedOut(billingDate string) bool {
